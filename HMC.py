@@ -7,7 +7,7 @@ eps = 0.1
 k = 1
 
 # Define the potental
-def V(x):
+def V(x,k):
     '''
     Given x, compute the potential
     '''
@@ -18,7 +18,7 @@ def H(x,p):
     '''
     Given x,p, and V(x),compute the Hamiltonian
     '''
-    return V(x) + 0.5*p**2
+    return V(x,k) + 0.5*p**2
 
 def HMC(n,L,eps):
     '''
