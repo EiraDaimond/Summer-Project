@@ -38,7 +38,7 @@ def HMC(n,L,eps):
         # Carry out the Metropolis test
         if W <= min(1,r):
             x.append(x_star)
-            else:
+        else:
                 x.append(x[t])
     return x
 
