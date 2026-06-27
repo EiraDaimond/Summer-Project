@@ -58,20 +58,40 @@ def exp_val(x):
 k = []
 exp_x = []
 # Start the loop over different k values
-for i in range(1, 11):   
-# Create an instance of the an_HMC class
-an_HMC(m=1, L=1000, eps=0.1, k=i, lam=1)
-# Run the an_HMC algorithm
-an_HMC_result = an_HMC.an_HMC_alg(an_HMC, 1000)
-# Append the lists appropriately
-k.append(i)
-exp_x.append(exp_val(an_HMC_result))
+for i in range(1, 101):   
+    # Create an instance of the an_HMC class
+    an_HMC_instance = an_HMC(m=1, L=1000, eps=0.1, k=i, lam=1)
+    # Run the an_HMC algorithm
+    an_HMC_result = an_HMC_instance.an_HMC_alg(1000)
+    # Append the lists appropriately
+    k.append(i)
+    exp_x.append(exp_val(an_HMC_result))
 # Plot the results
+plt.figure()
 plt.plot(k, exp_x)
 plt.xlabel('k')
 plt.ylabel('<x>')
-plt.(k, exp_x)
-plt.show()
+plt.grid(True)
+plt.savefig('exp_x_vs_k.png')
 
-
+# Investigating effect of changing lam on the expected value of x
+# Initialise the lists
+lam = []
+exp_x = []
+# Start the loop over different lam values
+for i in range(1, 101):   
+    # Create an instance of the an_HMC class
+    an_HMC_instance = an_HMC(m=1, L=1000, eps=0.1, k=1, lam=i)
+    # Run the an_HMC algorithm
+    an_HMC_result = an_HMC_instance.an_HMC_alg(1000)
+    # Append the lists appropriately
+    lam.append(i)
+    exp_x.append(exp_val(an_HMC_result))
+# Plot the results
+plt.figure()
+plt.plot(lam, exp_x)
+plt.xlabel('lam')
+plt.ylabel('<x>')
+plt.grid(True)
+plt.savefig('exp_x_vs_lam.png')
 
