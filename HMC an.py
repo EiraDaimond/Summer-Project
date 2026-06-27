@@ -4,21 +4,13 @@ import numpy as np
 m = 1 
 L = 100
 eps = 0.1
-k = 1
 
-# Define the potental
-def V(x):
-    '''
-    Given x, compute the potential
-    '''
-    return 0.5*k*x**2 
-
-# Define the Hamiltonian function
+# Define the anharmonic Hamiltonian function
 def H(x,p):
     '''
-    Given x,p, and V(x),compute the Hamiltonian
+    Given x and p, compute the Hamiltonian
     '''
-    return V(x) + 0.5*p**2
+    return 0.5*x**2 + 0.5*x**2
 
 def HMC(n,L,eps):
     '''
@@ -47,7 +39,7 @@ def HMC(n,L,eps):
         if W <= min(1,r):
             x.append(x_star)
         else:
-            x.append(x[t])
+                x.append(x[t])
     return x
 
 # Find the expected value of x
