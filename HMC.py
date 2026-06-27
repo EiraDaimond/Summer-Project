@@ -42,4 +42,11 @@ def HMC(n,L,eps):
                 x.append(x[t])
     return x
 
-print(HMC(10,L,eps))
+# Find the expected value of x
+def exp_val(x):
+    '''
+    Given a list of x values, compute the expected value
+    '''
+    return np.mean(x)   
+
+print(exp_val(HMC(1000,L,eps)))
