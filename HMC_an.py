@@ -27,14 +27,14 @@ class an_HMC:
             # Draw the momentum from a Normal distribution
             p = np.random.normal(0, self.m)
             # Compute the first leapfrog step
-            p_star = p - 0.5*self.eps*x[t]
+            p_star = p - 0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3)
             x_star = x[t] + self.eps*p_star/self.m
             # Compute (x*, - p*) using L leapfrog steps of size eps
             for l in range(1, self.L):
-                p_star = p_star - self.eps*x_star
+                p_star = p_star - self.eps*(self.k*x_star + self.lam*x_star**3)
                 x_star = x_star + self.eps*p_star/self.m
             # Compute the final step of the leapfrog method
-            p_star = p_star - 0.5*self.eps*x_star
+            p_star = p_star - 0.5*self.eps*(self.k*x_star + self.lam*x_star**3)
             # Compute the acceptance ratio
             r = np.exp(-self.an_H(x_star, p_star) + self.an_H(x[t], p))
             # Draw W from a Uniform distribution
