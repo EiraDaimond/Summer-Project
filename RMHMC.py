@@ -18,12 +18,20 @@ class RMHMC:
     def an_V(self, x):
         return 0.5*self.k*x**2 + 0.25*self.lam*x**4
 
+    # Define the metric tensor (negative second derivative of the potential term)
+    def G(self, x):
+        return -self.k - 3*self.lam*x**2
+        
+    # Define the kinetic energy term (include correction term)
+    def K(self, p, x):
+        return 0.5*p*self.G(x)*p + 0.5*np.log(2*np.pi*np.abs(self.G(x)))
+
     # Define the anharmonic Hamiltonian
     def an_H(self, x, p):
-        return self.an_V(x) + 0.5*p**2
+        return self.an_V(x) + self.K(p, x) 
 
     # Run the HMC algorithm
-    def an_HMC_alg(self, n):
+    def RMHMC_alg(self, n):
         # Initialise the x values
         x = [0]
         # Start the loop to generate x values
@@ -31,7 +39,7 @@ class RMHMC:
             # Draw the momentum from a Normal distribution
             p = np.random.normal(0, self.m)
             # Compute the first leapfrog step
-            p_star = p - 0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3)
+            p_star = np.linalg.solve(p - 0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p*(1/self.G(x[t]))**2*(-6*self.lam*x[t])*p + 0.5*(1/np.abs(self.G(x[t])))*(-6*self.lam*x[t])))
             x_star = x[t] + self.eps*p_star/self.m
             # Compute (x*, - p*) using L leapfrog steps of size eps
             for l in range(1, self.L):
