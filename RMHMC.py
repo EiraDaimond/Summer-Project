@@ -3,13 +3,16 @@ import matplotlib.pyplot as plt
 
 class RMHMC:
     # Define the variables to be used
-    def __init__(self, G=None, L=None, eps=None, k=None, lam=None):
-        self.G = G
+    def __init__(self, L=None, eps=None, k=None, lam=None):
         self.L = L
         self.eps = eps
         self.k = k
         self.lam = lam
-    
+        
+    # Define the metric tensor to be used
+    def G(self, x):
+        return np.array(0.5*self.k + 0.5*self.lam*x**2)
+
     # Define the kinetic energy function (with correction)
     def K_eff(self, p, G):
         return 0.5*p@np.linalg.inv(G)@p + 0.5*np.log(2*np.pi*np.linalg.det(G))
@@ -29,9 +32,9 @@ class RMHMC:
         # Start the loop to generate x values
         for t in range(n+1):
             # Draw the momentum from a Normal distribution
-            p = np.random.normal(0, self.G)
+            p = np.random.normal(0, self.G(x[t]))
             # Compute the first leapfrog step
-            p_star = p - 0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3 +)
+            p_star = p - 0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3 + self.lam )
             x_star = x[t] + self.eps*p_star/self.G
             # Compute (x*, - p*) using L leapfrog steps of size eps
             for l in range(1, self.L):
