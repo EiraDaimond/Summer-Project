@@ -20,7 +20,7 @@ class RMHMC:
 
     # Define the metric tensor (negative second derivative of the potential term)
     def G(self, x):
-        return -self.k - 3*self.lam*x**2
+        return -np.abs(self.k) - 3*self.lam*x**2
         
     # Define the kinetic energy term (include correction term)
     def K(self, p, x):
@@ -39,17 +39,17 @@ class RMHMC:
             # Initialise the x_star and p_star lists
             x_star = []
             p_star = []
-            # Draw the momentum from a Normal distribution and append it to p_star
-            p = np.random.normal(0, self.G(x[t]))
+            # Draw the momentum from a Normal distribution
+            p = np.random.normal(0, np.abs(self.G(x[t])))
             # Compute the first leapfrog step
-            p_star[0] = 1/(-3*(self.eps/self.G(x[t])**2)*self.lam*x[t])*(-1 + (1 + 6*self.lam*x[t]*self.eps/self.G(x[t])**2(-p +0.5*self.eps*self.k*x[t] + 0.5*self.eps*self.lam*x[t]**3 + 0.25*self.eps(1/self.G(x[t]))*(-6)*self.lam*x[t])**0.5))
+            p_star[0] = 1/(-3*(self.eps/self.G(x[t])**2)*self.lam*x[t])*(-1 - (1 + 6*self.lam*x[t]*self.eps/self.G(x[t])**2*(-p +0.5*self.eps*self.k*x[t] + 0.5*self.eps*self.lam*x[t]**3 + 0.25*self.eps*(1/self.G(x[t]))*(-6)*self.lam*x[t])**0.5))
             x_star[0] = x[t] + self.eps*self.G(x[t])*p_star[0]
             # Compute (x*, - p*) using L leapfrog steps of size eps
             for l in range(1, self.L):
-                p_star[l] = 1/(-6*(self.eps/self.G(x_star[l-1])**2)*self.lam*x_star[l-1])*(-1 + (1 + 2*6*self.lam*x_star[l-1]*self.eps/self.G(x_star[l-1])**2(-p_star[l-1] + self.eps*self.k*x_star[l-1] + self.eps*self.lam*x_star[l-1]**3 + 0.5*self.eps(1/self.G(x_star[l-1]))*(-6)*self.lam*x_star[l-1])**0.5))
+                p_star[l] = 1/(-6*(self.eps/self.G(x_star[l-1])**2)*self.lam*x_star[l-1])*(-1 - (1 + 2*6*self.lam*x_star[l-1]*self.eps/self.G(x_star[l-1])**2*(-p_star[l-1] + self.eps*self.k*x_star[l-1] + self.eps*self.lam*x_star[l-1]**3 + 0.5*self.eps*(1/self.G(x_star[l-1]))*(-6)*self.lam*x_star[l-1])**0.5))
                 x_star[l] = x_star[l-1] + self.eps*self.G(x_star[l-1])*p_star[l]
             # Compute the final step of the leapfrog method
-            p_star[self.L+1] = 1/(-3*(self.eps/self.G(x_star[self.L])**2)*self.lam*x_star[self.L])*(-1 + (1 + 6*self.lam*x_star[self.L]*self.eps/self.G(x_star[self.L])**2(-p_star[self.L] +0.5*self.eps*self.k*x_star[self.L] + 0.5*self.eps*self.lam*x_star[self.L]**3 + 0.25*self.eps(1/self.G(x_star[self.L]))*(-6)*self.lam*x_star[self.L])**0.5))
+            p_star[self.L+1] = 1/(-3*(self.eps/self.G(x_star[self.L])**2)*self.lam*x_star[self.L])*(-1 - (1 + 6*self.lam*x_star[self.L]*self.eps/self.G(x_star[self.L])**2*(-p_star[self.L] +0.5*self.eps*self.k*x_star[self.L] + 0.5*self.eps*self.lam*x_star[self.L]**3 + 0.25*self.eps*(1/self.G(x_star[self.L]))*(-6)*self.lam*x_star[self.L])**0.5))
             # Compute the acceptance ratio
             r = np.exp(-self.H(x_star[self.L], p_star[self.L+1]) + self.H(x[t], p))
             # Draw W from a Uniform distribution
@@ -67,3 +67,7 @@ def exp_val(x):
     Given a list of x values, compute the expected value
     '''
     return np.mean(x)
+
+# Testing the code
+RMHMC_test = RMHMC(L=10, eps=0.1, k=1, lam=1)
+print(RMHMC_test.RMHMC_alg(10))
