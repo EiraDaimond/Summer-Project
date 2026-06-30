@@ -37,24 +37,26 @@ class RMHMC:
         # Start the loop to generate x values
         for t in range(n+1):
             # Initialise the x_star and p_star lists
-            x_star = [0]
+            x_star = []
             p_star = []
             # Draw the momentum from a Normal distribution and append it to p_star
             p = np.random.normal(0, self.G(x[t]))
-            p_star.append(p)
+            # Compute the first leapfrog step
+            p_star[0] = 1/(-3*(self.eps/self.G(x[t])**2)*self.lam*x[t])*(-1 + (1 + 6*self.lam*x[t]*self.eps/self.G(x[t])**2(-p +0.5*self.eps*self.k*x[t] + 0.5*self.eps*self.lam*x[t]**3 + 0.25*self.eps(1/self.G(x[t]))*(-6)*self.lam*x[t])**0.5))
+            x_star[0] = x[t] + self.eps*self.G(x[t])*p_star[0]
             # Compute (x*, - p*) using L leapfrog steps of size eps
             for l in range(1, self.L):
-                p_star[l] = 1/(-3*(self.eps/self.G(x[t])**2)*self.lam*x[t])*(-1 + (1 + 6*self.lam*x[t]*self.eps/self.G(x[t])**2(-p_star[l-1] +0.5*self.eps*self.k*x[t] + 0.5*self.eps*self.lam*x[t]**3 + 0.25*self.eps(1/self.G(x[t]))*(-6)*self.lam*x[t])**0.5))
-                x_star[l] = x_star[l-1] + self.eps*self.G(x[t])*p_star[l]
+                p_star[l] = 1/(-6*(self.eps/self.G(x_star[l-1])**2)*self.lam*x_star[l-1])*(-1 + (1 + 2*6*self.lam*x_star[l-1]*self.eps/self.G(x_star[l-1])**2(-p_star[l-1] + self.eps*self.k*x_star[l-1] + self.eps*self.lam*x_star[l-1]**3 + 0.5*self.eps(1/self.G(x_star[l-1]))*(-6)*self.lam*x_star[l-1])**0.5))
+                x_star[l] = x_star[l-1] + self.eps*self.G(x_star[l-1])*p_star[l]
             # Compute the final step of the leapfrog method
-            p_star = p_star - 0.5*self.eps*(self.k*x_star + self.lam*x_star**3)
+            p_star[self.L+1] = 1/(-3*(self.eps/self.G(x_star[self.L])**2)*self.lam*x_star[self.L])*(-1 + (1 + 6*self.lam*x_star[self.L]*self.eps/self.G(x_star[self.L])**2(-p_star[self.L] +0.5*self.eps*self.k*x_star[self.L] + 0.5*self.eps*self.lam*x_star[self.L]**3 + 0.25*self.eps(1/self.G(x_star[self.L]))*(-6)*self.lam*x_star[self.L])**0.5))
             # Compute the acceptance ratio
-            r = np.exp(-self.an_H(x_star, p_star) + self.an_H(x[t], p))
+            r = np.exp(-self.H(x_star[self.L], p_star[self.L+1]) + self.H(x[t], p))
             # Draw W from a Uniform distribution
             W = np.random.uniform(0, 1)
             # Carry out the Metropolis test
             if W <= min(1, r):
-                x.append(x_star)
+                x.append(x_star[self.L+1])
             else:
                 x.append(x[t])
         return x
