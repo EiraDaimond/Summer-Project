@@ -39,7 +39,7 @@ class RMHMC:
             # Draw the momentum from a Normal distribution
             p = np.random.normal(0, self.m)
             # Compute the first leapfrog step
-            p_star = np.linalg.solve(p - 0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p*(1/self.G(x[t]))**2*(-6*self.lam*x[t])*p + 0.5*(1/np.abs(self.G(x[t])))*(-6*self.lam*x[t])))
+            p_star = np.linalg.solve(p - 0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_star*(1/self.G(x[t]))**2*(-6*self.lam*x[t])*p_star + 0.5*(1/np.abs(self.G(x[t])))*(-6*self.lam*x[t])))
             x_star = x[t] + self.eps*p_star/self.m
             # Compute (x*, - p*) using L leapfrog steps of size eps
             for l in range(1, self.L):
