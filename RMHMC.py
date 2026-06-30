@@ -26,8 +26,8 @@ class RMHMC:
     def K(self, p, x):
         return 0.5*p*self.G(x)*p + 0.5*np.log(2*np.pi*np.abs(self.G(x)))
 
-    # Define the anharmonic Hamiltonian
-    def an_H(self, x, p):
+    # Define the Hamiltonian
+    def H(self, x, p):
         return self.an_V(x) + self.K(p, x) 
 
     # Run the HMC algorithm
@@ -36,15 +36,16 @@ class RMHMC:
         x = [0]
         # Start the loop to generate x values
         for t in range(n+1):
-            # Draw the momentum from a Normal distribution
-            p = np.random.normal(0, self.m)
-            # Compute the first leapfrog step
-            p_star = np.linalg.solve(p - 0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_star*(1/self.G(x[t]))**2*(-6*self.lam*x[t])*p_star + 0.5*(1/np.abs(self.G(x[t])))*(-6*self.lam*x[t])))
-            x_star = x[t] + self.eps*p_star/self.m
+            # Initialise the x_star and p_star lists
+            x_star = [0]
+            p_star = []
+            # Draw the momentum from a Normal distribution and append it to p_star
+            p = np.random.normal(0, self.G(x[t]))
+            p_star.append(p)
             # Compute (x*, - p*) using L leapfrog steps of size eps
             for l in range(1, self.L):
-                p_star = p_star - self.eps*(self.k*x_star + self.lam*x_star**3)
-                x_star = x_star + self.eps*p_star/self.m
+                p_star[l] = 1/(-3*(self.eps/self.G(x[t])**2)*self.lam*x[t])*(-1 + (1 + 6*self.lam*x[t]*self.eps/self.G(x[t])**2(-p_star[l-1] +0.5*self.eps*self.k*x[t] + 0.5*self.eps*self.lam*x[t]**3 + 0.25*self.eps(1/self.G(x[t]))*(-6)*self.lam*x[t])**0.5))
+                x_star[l] = x_star[l-1] + self.eps*self.G(x[t])*p_star[l]
             # Compute the final step of the leapfrog method
             p_star = p_star - 0.5*self.eps*(self.k*x_star + self.lam*x_star**3)
             # Compute the acceptance ratio
