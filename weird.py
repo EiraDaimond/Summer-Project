@@ -58,19 +58,20 @@ class RMHMC:
             for l in range(1, self.L):
                 print("p_star[l-1]:", p_star[l-1])
                 p_star[l] = (1/self.eps*self.G(x_star[l-1]))*(-1 + (1- 2*self.eps*self.G(x_star[l-1])*(p + self.eps*self.k*x_star[l-1] + self.eps*self.lam*(x_star[l-1])**3 + 0.5*self.eps*self.sgn_G(x_star[l-1])*6*self.lam*x_star[l-1]/(self.G(x_star[l-1]))**2)**0.5))
-            print("p_star[0]:", p_star[0])
+                print("p_star[0]:", p_star[0])
                 x_star[l] = x_star[l-1] + self.eps*self.G(x_star[l-1])*p_star[l]
             # Compute the final step of the leapfrog method
-            #p_star[self.L] = 1/(-3*(self.eps/self.G(x_star[self.L-1])**2)*self.lam*x_star[self.L-1])*(-1 - (1 + 6*self.lam*x_star[self.L-1]*self.eps/self.G(x_star[self.L-1])**2*(-p_star[self.L-1] +0.5*self.eps*self.k*x_star[self.L-1] + 0.5*self.eps*self.lam*x_star[self.L-1]**3 + 0.25*self.eps*(1/self.G(x_star[self.L-1]))*(-6)*self.lam*x_star[self.L-1])**0.5))
+            p_star[self.L] = (2/self.eps*self.G(x_star[self.L-1]))*(-1 + (1- self.eps*self.G(x_star[self.L-1])*(p + 0.5*self.eps*self.k*x_star[self.L-1] + 0.5*self.eps*self.lam*(x_star[self.L-1])**3 + 0.25*self.eps*self.sgn_G(x_star[self.L-1])*6*self.lam*x_star[self.L-1]/(self.G(x_star[self.L-1]))**2)**0.5))
+            print("p_star[0]:", p_star[0])
             # Compute the acceptance ratio
-            #r = np.exp(-self.H(x_star[self.L-1], p_star[self.L]) + self.H(x[t], p))
+            r = np.exp(-self.H(x_star[self.L-1], p_star[self.L]) + self.H(x[t], p))
             # Draw W from a Uniform distribution
-            #W = np.random.uniform(0, 1)            
+            W = np.random.uniform(0, 1)            
             # Carry out the Metropolis test
-            #if W <= min(1, r):
-                #x.append(x_star[self.L])
-            #else:
-                #x.append(x[t])
+            if W <= min(1, r):
+                x.append(x_star[self.L])
+            else:
+                x.append(x[t])
         return x
 
 # Find the expected value of x
