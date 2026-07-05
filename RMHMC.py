@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 from tqdm import tqdm
+from scipy.optimize import root
 
 class RMHMC:
     '''
@@ -41,13 +42,18 @@ class RMHMC:
             # Compute the first leapfrog step
             p_star = p - 0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_star**2(-6*self.lam*x[t]/self.G(x[t])**2)+ 0.5/2*np.pi(-6*lam*x[t]))
             x_star = [x[t] + self.eps*self.G(x[t])*p_star]
-            # Compute (x*, - p*) using L leapfrog steps of size eps
+            # Compute (x*, - p*) using L leapfrog steps of size eps 
+            # Use convergence method to solve implicit equations for p_star
             for l in range(1, self.L):
-                p_star_intermediary  = p_star - 0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_star**2(-6*self.lam*x[t]/self.G(x[t])**2)+ 0.5/2*np.pi(-6*lam*x[t]))
-                x_star.append(x_star[l-1] + self.eps*self.G(x_star[l-1])*p_star[l])
+                for i in range(1, 100):
+                    p_star_guess  = p_star 
+                    p_star_new = p_star - 0.5*self.eps*(self.k*x_star + self.lam*x_star**3 + 0.5*p_star_guess**2(-6*self.lam*x_star/self.G(x_star)**2)+ 0.5/2*np.pi(-6*lam*x_star))
+                    if p_star_new - p_star_guess < 1e-6:
+                        p_star_new = p_star_guess
+            x_star = x_star + self.eps*self.G(x_star)*p_star_new
             # Compute the final step of the leapfrog method and append to the list
             p_star.append(1/(-3*(self.eps/self.G(x_star[self.L-1])**2)*self.lam*x_star[self.L-1])*(-1 - (1 + 6*self.lam*x_star[self.L-1]*self.eps/self.G(x_star[self.L-1])**2*(abs(-p_star[self.L-1] +0.5*self.eps*self.k*x_star[self.L-1] + 0.5*self.eps*self.lam*x_star[self.L-1]**3 + 0.25*self.eps*(1/self.G(x_star[self.L-1]))*(-6)*self.lam*x_star[self.L-1]))**0.5)))
-            # Compute the acceptance ratio
+            # Compute the acceptance ratio 
             r = np.exp(-self.H(x_star[self.L-1], p_star[self.L]) + self.H(x_star[0], p_star[0]))
             # Draw W from a Uniform distribution
             W = np.random.uniform(0, 1)
