@@ -8,11 +8,12 @@ class RMHMC:
     shall denote G. In the 1D case, this is just a scalar. 
     '''
     # Define the variables to be used
-    def __init__(self, L=None, eps=None, k=None, lam=None):
+    def __init__(self, L=None, eps=None, k=None, lam=None, delta=None):
         self.L = L
         self.eps = eps
         self.k = k
         self.lam = lam
+        self.delta = delta
 
     # Define the anharmonic potential term
     def an_V(self, x):
@@ -33,7 +34,7 @@ class RMHMC:
     # Run the HMC algorithm
     def RMHMC_alg(self, n):
         # Initialise the x values
-        x = [1e-6]
+        x = [0]
         # Start the loop to generate x values
         for t in range(n+1):
             # Initialise the x_star and p_star lists
@@ -43,18 +44,37 @@ class RMHMC:
             p = np.random.normal(0, np.abs(self.G(x[t])))
             print("Random p:",p)
             # Compute the first leapfrog step
-            p_star[0] = (2/self.eps*self.G(x[t]))*(-1 + (1- self.eps*self.G(x[t])*(p + 0.5*self.eps*self.k*x[t] + 0.5*self.eps*self.lam*(x[t])**3 + 0.25*self.eps*abs(6*self.lam*x[t])/(self.G(x[t]))**2)**0.5)) # Note: Chose + term
+            p_star[0] = (2/self.eps*self.G(x[t])+self.delta)\
+                        *(-1 \
+                            + (1- self.eps*self.G(x[t])\
+                            *(p + 0.5*self.eps*self.k*x[t] \
+                            + 0.5*self.eps*self.lam*(x[t])**3 \
+                            + 0.25*self.eps*abs(6*self.lam*x[t])/(self.G(x[t]))**2)\
+                            **0.5)) # Note: Chose + term
             print("p_star[0]:", p_star[0])
             x_star[0] = x[t] + self.eps*self.G(x[t])*p_star[0]
             print(x_star[0])
             # Compute (x*, - p*) using L leapfrog steps of size eps
             for l in range(1, self.L):
-                print("p_star[l-1]:", p_star[l-1])
-                p_star[l] = (1/self.eps*self.G(x_star[l-1]))*(-1 + (1- 2*self.eps*self.G(x_star[l-1])*(p + self.eps*self.k*x_star[l-1] + self.eps*self.lam*(x_star[l-1])**3 + 0.5*self.eps*abs(6*self.lam*x_star[l-1])/(self.G(x_star[l-1]))**2)**0.5))
+                print(l, p_star[l-1])
+                print(l, x_star[l-1])
+                p_star[l] = (1/self.eps*self.G(x_star[l-1]))\
+                    *(-1 + \
+                        (1- 2*self.eps*self.G(x_star[l-1])*\
+                            (p + self.eps*self.k*x_star[l-1] \
+                            + self.eps*self.lam*(x_star[l-1])**3 \
+                            + 0.5*self.eps*abs(6*self.lam*x_star[l-1])\
+                            /(self.G(x_star[l-1]))**2\
+                        ))**0.5)
                 print("p_star[0]:", p_star[0])
                 x_star[l] = x_star[l-1] + self.eps*self.G(x_star[l-1])*p_star[l]
             # Compute the final step of the leapfrog method
-            p_star[self.L] = (2/self.eps*self.G(x_star[self.L-1]))*(-1 + (1- self.eps*self.G(x_star[self.L-1])*(p + 0.5*self.eps*self.k*x_star[self.L-1] + 0.5*self.eps*self.lam*(x_star[self.L-1])**3 + 0.25*self.eps*abs(*6*self.lam*x_star[self.L-1])/(self.G(x_star[self.L-1]))**2)**0.5))
+            p_star[self.L] = (2/self.eps*self.G(x_star[self.L-1])+self.delta)*\
+                (-1 + \
+                    (1- self.eps*self.G(x_star[self.L-1])*\
+                        (p + 0.5*self.eps*self.k*x_star[self.L-1] \
+                             + 0.5*self.eps*self.lam*(x_star[self.L-1])**3 \
+                             + 0.25*self.eps*abs(6*self.lam*x_star[self.L-1])/(self.G(x_star[self.L-1]))**2)**0.5))
             print("p_star[0]:", p_star[0])
             # Compute the acceptance ratio
             r = np.exp(-self.H(x_star[self.L-1], p_star[self.L]) + self.H(x[t], p))
@@ -75,5 +95,5 @@ def exp_val(x):
     return np.mean(x)
 
 # Testing the code
-RMHMC_test = RMHMC(L=10, eps=0.1, k=1, lam=1)
+RMHMC_test = RMHMC(L=10, eps=0.1, k=1, lam=1, delta=1e-30)
 print(RMHMC_test.RMHMC_alg(10))
