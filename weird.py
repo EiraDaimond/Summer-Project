@@ -21,13 +21,6 @@ class RMHMC:
     # Define the metric tensor (negative second derivative of the potential term)
     def G(self, x):
         return -self.k - 3*self.lam*x**2
-    
-    def sgn_G(self, x):
-        if self.G(x) < 0:
-            sgn = -1
-        else:
-            sgn = 1
-        return sgn
 
     # Define the kinetic energy term (include correction term)
     def K(self, p, x):
@@ -50,18 +43,18 @@ class RMHMC:
             p = np.random.normal(0, np.abs(self.G(x[t])))
             print("Random p:",p)
             # Compute the first leapfrog step
-            p_star[0] = (2/self.eps*self.G(x[t]))*(-1 + (1- self.eps*self.G(x[t])*(p + 0.5*self.eps*self.k*x[t] + 0.5*self.eps*self.lam*(x[t])**3 + 0.25*self.eps*self.sgn_G(x[t])*6*self.lam*x[t]/(self.G(x[t]))**2)**0.5)) # Note: Chose + term
+            p_star[0] = (2/self.eps*self.G(x[t]))*(-1 + (1- self.eps*self.G(x[t])*(p + 0.5*self.eps*self.k*x[t] + 0.5*self.eps*self.lam*(x[t])**3 + 0.25*self.eps*abs(6*self.lam*x[t])/(self.G(x[t]))**2)**0.5)) # Note: Chose + term
             print("p_star[0]:", p_star[0])
             x_star[0] = x[t] + self.eps*self.G(x[t])*p_star[0]
             print(x_star[0])
             # Compute (x*, - p*) using L leapfrog steps of size eps
             for l in range(1, self.L):
                 print("p_star[l-1]:", p_star[l-1])
-                p_star[l] = (1/self.eps*self.G(x_star[l-1]))*(-1 + (1- 2*self.eps*self.G(x_star[l-1])*(p + self.eps*self.k*x_star[l-1] + self.eps*self.lam*(x_star[l-1])**3 + 0.5*self.eps*self.sgn_G(x_star[l-1])*6*self.lam*x_star[l-1]/(self.G(x_star[l-1]))**2)**0.5))
+                p_star[l] = (1/self.eps*self.G(x_star[l-1]))*(-1 + (1- 2*self.eps*self.G(x_star[l-1])*(p + self.eps*self.k*x_star[l-1] + self.eps*self.lam*(x_star[l-1])**3 + 0.5*self.eps*abs(6*self.lam*x_star[l-1])/(self.G(x_star[l-1]))**2)**0.5))
                 print("p_star[0]:", p_star[0])
                 x_star[l] = x_star[l-1] + self.eps*self.G(x_star[l-1])*p_star[l]
             # Compute the final step of the leapfrog method
-            p_star[self.L] = (2/self.eps*self.G(x_star[self.L-1]))*(-1 + (1- self.eps*self.G(x_star[self.L-1])*(p + 0.5*self.eps*self.k*x_star[self.L-1] + 0.5*self.eps*self.lam*(x_star[self.L-1])**3 + 0.25*self.eps*self.sgn_G(x_star[self.L-1])*6*self.lam*x_star[self.L-1]/(self.G(x_star[self.L-1]))**2)**0.5))
+            p_star[self.L] = (2/self.eps*self.G(x_star[self.L-1]))*(-1 + (1- self.eps*self.G(x_star[self.L-1])*(p + 0.5*self.eps*self.k*x_star[self.L-1] + 0.5*self.eps*self.lam*(x_star[self.L-1])**3 + 0.25*self.eps*abs(*6*self.lam*x_star[self.L-1])/(self.G(x_star[self.L-1]))**2)**0.5))
             print("p_star[0]:", p_star[0])
             # Compute the acceptance ratio
             r = np.exp(-self.H(x_star[self.L-1], p_star[self.L]) + self.H(x[t], p))
