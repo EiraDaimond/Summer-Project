@@ -31,43 +31,62 @@ class RMHMC:
     def H(self, x, p):
         return self.an_V(x) + self.K(p, x) 
 
-    # Run the HMC algorithm
-    def RMHMC_alg(self, n):
+    # Run the RMHMC algorithm
+    def RMHMC_alg(self, n, tol):
+        '''
+        Carry out the RMHMC algorithm to generate x values. 
+        We will use the Generalised Leapfrog Method with the fixed point iteration.
+        '''
         # Initialise the x values
         x = [0]
         # Start the loop to generate x values
         for t in range(n+1):
             # Initialise the x_star and p_star lists
-            x_star = [0]*(self.L+1)
-            p_star = [0]*(self.L+1)
+            x_star = []
+            p_star = []
             # Draw the momentum from a Normal distribution
             p = np.random.normal(0, np.abs(self.G(x[t])))
             print("Random p:",p)
+            # Provide a guess value for p, and define del_p
+            p_guess = p 
+            del_p = abs(0.5*self.eps\
+                        *(self.k*x[t] + self.lam*x[t]**3 \
+                        + 0.5*p_guess**2*(-6*self.lam*x[t]/self.G(x[t])**2)\
+                        + 0.5/2*np.pi(-6*lam*x[t]))
+        
+            # Start the fixed point iteration for the first leapfrog step
+            while del_p > tol:
+                p_star = p_guess - 0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2(-6*self.lam*x[t]/self.G(x[t])**2)+ 0.5/2*np.pi(-6*lam*x[t]))   
+            p_star.append(p_star)
             # Compute the first leapfrog step
-            p_star[0] = (2/self.eps*self.G(x[t])+self.delta)\
-                        *(-1 \
-                            + (1- self.eps*self.G(x[t])\
-                            *(p + 0.5*self.eps*self.k*x[t] \
-                            + 0.5*self.eps*self.lam*(x[t])**3 \
-                            + 0.25*self.eps*abs(6*self.lam*x[t])/(self.G(x[t]))**2)\
-                            **0.5)) # Note: Chose + term
-            print("p_star[0]:", p_star[0])
-            x_star[0] = x[t] + self.eps*self.G(x[t])*p_star[0]
-            print(x_star[0])
+            #p_star[0] = (2/self.eps*self.G(x[t])+self.delta)\
+                        #*(-1 \
+                            #+ (1- self.eps*self.G(x[t])\
+                            #*(p + 0.5*self.eps*self.k*x[t] \
+                            #+ 0.5*self.eps*self.lam*(x[t])**3 \
+                            #+ 0.25*self.eps*abs(6*self.lam*x[t])/(self.G(x[t]))**2)\
+                            #**0.5)) # Note: Chose + term
+            #print("p_star[0]:", p_star[0])
+            #x_star[0] = x[t] + self.eps*self.G(x[t])*p_star[0]
+            #print(x_star[0])
             # Compute (x*, - p*) using L leapfrog steps of size eps
             for l in range(1, self.L):
-                print(l, p_star[l-1])
-                print(l, x_star[l-1])
-                p_star[l] = (1/self.eps*self.G(x_star[l-1]))\
-                    *(-1 + \
-                        (1- 2*self.eps*self.G(x_star[l-1])*\
-                            (p + self.eps*self.k*x_star[l-1] \
-                            + self.eps*self.lam*(x_star[l-1])**3 \
-                            + 0.5*self.eps*abs(6*self.lam*x_star[l-1])\
-                            /(self.G(x_star[l-1]))**2\
-                        ))**0.5)
-                print("p_star[0]:", p_star[0])
-                x_star[l] = x_star[l-1] + self.eps*self.G(x_star[l-1])*p_star[l]
+                while delp_p > tol:
+                    p_star = p_guess - self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2(-6*self.lam*x[t]/self.G(x[t])**2)+ 0.5/2*np.pi(-6*lam*x[t]))
+            p_star.append(p_guess)
+                p_star.append(p_guess)
+                #print(l, p_star[l-1])
+                #print(l, x_star[l-1])
+                #p_star[l] = (1/self.eps*self.G(x_star[l-1]))\
+                 #   *(-1 + \
+                  #      (1- 2*self.eps*self.G(x_star[l-1])*\
+                   #         (p + self.eps*self.k*x_star[l-1] \
+                    #        + self.eps*self.lam*(x_star[l-1])**3 \
+                     #       + 0.5*self.eps*abs(6*self.lam*x_star[l-1])\
+                      #      /(self.G(x_star[l-1]))**2\
+                       # ))**0.5)
+                #print("p_star[0]:", p_star[0])
+                #x_star[l] = x_star[l-1] + self.eps*self.G(x_star[l-1])*p_star[l]
             # Compute the final step of the leapfrog method
             p_star[self.L] = (2/self.eps*self.G(x_star[self.L-1])+self.delta)*\
                 (-1 + \
