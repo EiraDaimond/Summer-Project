@@ -8,12 +8,12 @@ class RMHMC:
     shall denote G. In the 1D case, this is just a scalar. 
     '''
     # Define the variables to be used
-    def __init__(self, L=None, eps=None, k=None, lam=None, delta=None):
+    def __init__(self, L=None, eps=None, k=None, lam=None, tol=1e-6):
         self.L = L
         self.eps = eps
         self.k = k
         self.lam = lam
-        self.delta = delta
+        self.tol = tol
 
     # Define the anharmonic potential term
     def an_V(self, x):
@@ -42,63 +42,53 @@ class RMHMC:
         # Start the loop to generate x values
         for t in range(n+1):
             # Initialise the x_star and p_star lists
-            x_star = []
-            p_star = []
+            x_stars = []
+            p_stars = []
             # Draw the momentum from a Normal distribution
             p = np.random.normal(0, np.abs(self.G(x[t])))
-            print("Random p:",p)
-            # Provide a guess value for p, and define del_p 
+            # Provide an initial guess value for p, initialise p_star
             p_guess = p 
-            del_p_be = abs(0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2(-6*self.lam*x[t]) + 0.5*abs(-6*self.lam*x[t])/abs(-k-3*self.lam*x[t]**2)))
-            del_p_other = abs(self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2(-6*self.lam*x[t]) + 0.5*abs(-6*self.lam*x[t])/abs(-k-3*self.lam*x[t]**2)))
+            p_star = 0
             # Start the fixed point iteration for the first leapfrog step
-            while del_p > tol:
-                p_star = p_guess - 0.5*self.eps*(  self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2(-6*self.lam*x[t]) + 0.5*abs(-6*self.lam*x[t])/abs(-k-3*self.lam*x[t]**2) 
-            p_star.append(p_star)
-            # Compute the first leapfrog step
-            #p_star[0] = (2/self.eps*self.G(x[t])+self.delta)\
-                        #*(-1 \
-                            #+ (1- self.eps*self.G(x[t])\
-                            #*(p + 0.5*self.eps*self.k*x[t] \
-                            #+ 0.5*self.eps*self.lam*(x[t])**3 \
-                            #+ 0.25*self.eps*abs(6*self.lam*x[t])/(self.G(x[t]))**2)\
-                            #**0.5)) # Note: Chose + term
-            #print("p_star[0]:", p_star[0])
-            #x_star[0] = x[t] + self.eps*self.G(x[t])*p_star[0]
-            #print(x_star[0])
+            while True:
+                p_star = p - 0.5*self.eps*\
+                    (self.k*x[t] + self.lam*x[t]**3 \
+                     + 0.5*p_guess**2*(-6*self.lam*x[t]) \
+                     + 0.5*abs(-6*self.lam*x[t])/abs(-self.k-3*self.lam*x[t]**2))
+                if abs(p_star - p_guess) < tol: 
+                    break
+                p_guess = p_star    
+            p_stars.append(p_star)
+            x_star = x[t] + self.eps*self.G(x[t])*p_star
+            x_stars.append(x_star)
             # Compute (x*, - p*) using L leapfrog steps of size eps
             for l in range(1, self.L):
-                while delp_p > tol:
-                    p_star = p_guess - self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2(-6*self.lam*x[t]) + 0.5*abs(-6*self.lam*x[t])/abs(-k-3*self.lam*x[t]**2)
-            p_star.append(p_guess)
-                p_star.append(p_guess)
-                #print(l, p_star[l-1])
-                #print(l, x_star[l-1])
-                #p_star[l] = (1/self.eps*self.G(x_star[l-1]))\
-                 #   *(-1 + \
-                  #      (1- 2*self.eps*self.G(x_star[l-1])*\
-                   #         (p + self.eps*self.k*x_star[l-1] \
-                    #        + self.eps*self.lam*(x_star[l-1])**3 \
-                     #       + 0.5*self.eps*abs(6*self.lam*x_star[l-1])\
-                      #      /(self.G(x_star[l-1]))**2\
-                       # ))**0.5)
-                #print("p_star[0]:", p_star[0])
-                #x_star[l] = x_star[l-1] + self.eps*self.G(x_star[l-1])*p_star[l]
+                while True:
+                    p_star = p_star - self.eps\
+                                            *(self.k*x_star + self.lam*x_star**3\
+                                                + 0.5*p_guess**2*(-6*self.lam*x_star)\
+                                                + 0.5*abs(-6*self.lam*x_star)/abs(-self.k-3*self.lam*x_star**2))
+                    if abs(p_star - p_guess) < tol:
+                        break
+                    p_guess = p_star
+                p_stars.append(p_star)
+                x_star = x_star + self.eps*self.G(x_star)*p_star
+                x_stars.append(x_star)
             # Compute the final step of the leapfrog method
-            p_star[self.L] = (2/self.eps*self.G(x_star[self.L-1])+self.delta)*\
-                (-1 + \
-                    (1- self.eps*self.G(x_star[self.L-1])*\
-                        (p + 0.5*self.eps*self.k*x_star[self.L-1] \
-                             + 0.5*self.eps*self.lam*(x_star[self.L-1])**3 \
-                             + 0.25*self.eps*abs(6*self.lam*x_star[self.L-1])/(self.G(x_star[self.L-1]))**2)**0.5))
-            print("p_star[0]:", p_star[0])
+            while True:
+                p_star = p_guess - 0.5*self.eps\
+                                        *(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2*(-6*self.lam*x[t])\
+                                           + 0.5*abs(-6*self.lam*x[t])/abs(-self.k-3*self.lam*x[t]**2))
+                if abs(p_star - p_guess) < tol:
+                    break
+                p_guess = p_star
             # Compute the acceptance ratio
-            r = np.exp(-self.H(x_star[self.L-1], p_star[self.L]) + self.H(x[t], p))
+            r = np.exp(-self.H(x_star, p_star) + self.H(x[t], p))
             # Draw W from a Uniform distribution
             W = np.random.uniform(0, 1)            
             # Carry out the Metropolis test
             if W <= min(1, r):
-                x.append(x_star[self.L])
+                x.append(x_star)
             else:
                 x.append(x[t])
         return x
@@ -111,5 +101,5 @@ def exp_val(x):
     return np.mean(x)
 
 # Testing the code
-RMHMC_test = RMHMC(L=10, eps=0.1, k=1, lam=1, delta=1e-30)
-print(RMHMC_test.RMHMC_alg(10))
+RMHMC_test = RMHMC(L=10, eps=0.1, k=1, lam=1, tol = 1e-6)
+print(RMHMC_test.RMHMC_alg(10,tol=1e-6))
