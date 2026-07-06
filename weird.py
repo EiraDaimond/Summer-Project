@@ -47,16 +47,13 @@ class RMHMC:
             # Draw the momentum from a Normal distribution
             p = np.random.normal(0, np.abs(self.G(x[t])))
             print("Random p:",p)
-            # Provide a guess value for p, and define del_p
+            # Provide a guess value for p, and define del_p 
             p_guess = p 
-            del_p = abs(0.5*self.eps\
-                        *(self.k*x[t] + self.lam*x[t]**3 \
-                        + 0.5*p_guess**2*(-6*self.lam*x[t]/self.G(x[t])**2)\
-                        + 0.5/2*np.pi(-6*lam*x[t]))
-        
+            del_p_be = abs(0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2(-6*self.lam*x[t]) + 0.5*abs(-6*self.lam*x[t])/abs(-k-3*self.lam*x[t]**2)))
+            del_p_other = abs(self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2(-6*self.lam*x[t]) + 0.5*abs(-6*self.lam*x[t])/abs(-k-3*self.lam*x[t]**2)))
             # Start the fixed point iteration for the first leapfrog step
             while del_p > tol:
-                p_star = p_guess - 0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2(-6*self.lam*x[t]/self.G(x[t])**2)+ 0.5/2*np.pi(-6*lam*x[t]))   
+                p_star = p_guess - 0.5*self.eps*(  self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2(-6*self.lam*x[t]) + 0.5*abs(-6*self.lam*x[t])/abs(-k-3*self.lam*x[t]**2) 
             p_star.append(p_star)
             # Compute the first leapfrog step
             #p_star[0] = (2/self.eps*self.G(x[t])+self.delta)\
@@ -72,7 +69,7 @@ class RMHMC:
             # Compute (x*, - p*) using L leapfrog steps of size eps
             for l in range(1, self.L):
                 while delp_p > tol:
-                    p_star = p_guess - self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2(-6*self.lam*x[t]/self.G(x[t])**2)+ 0.5/2*np.pi(-6*lam*x[t]))
+                    p_star = p_guess - self.eps*(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2(-6*self.lam*x[t]) + 0.5*abs(-6*self.lam*x[t])/abs(-k-3*self.lam*x[t]**2)
             p_star.append(p_guess)
                 p_star.append(p_guess)
                 #print(l, p_star[l-1])
