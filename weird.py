@@ -57,17 +57,21 @@ class RMHMC:
                      + 0.5*abs(-6*self.lam*x[t])/abs(-self.k-3*self.lam*x[t]**2))
                 if abs(p_star - p_guess) < tol: 
                     break
-                p_guess = p_star    
+                p_guess = p_star  
+            print(p_star)  
             p_stars.append(p_star)
             x_star = x[t] + self.eps*self.G(x[t])*p_star
             x_stars.append(x_star)
             # Compute (x*, - p*) using L leapfrog steps of size eps
             for l in range(1, self.L):
+                p_current = p_star
+                p_guess = p_star
                 while True:
-                    p_star = p_star - self.eps\
+                    p_star = p_current - self.eps\
                                             *(self.k*x_star + self.lam*x_star**3\
                                                 + 0.5*p_guess**2*(-6*self.lam*x_star)\
                                                 + 0.5*abs(-6*self.lam*x_star)/abs(-self.k-3*self.lam*x_star**2))
+                    print("In while loop, p_star tracking:",p_star, p_star - p_guess)
                     if abs(p_star - p_guess) < tol:
                         break
                     p_guess = p_star
@@ -75,6 +79,8 @@ class RMHMC:
                 x_star = x_star + self.eps*self.G(x_star)*p_star
                 x_stars.append(x_star)
             # Compute the final step of the leapfrog method
+            p_current = p_star
+            p_guess = p_star
             while True:
                 p_star = p_guess - 0.5*self.eps\
                                         *(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2*(-6*self.lam*x[t])\
