@@ -1,99 +1,114 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
-class an_HMC:
-    # Define the variables to be used
-    def __init__(self, m=None, L=None, eps=None, k=None, lam=None):
-        self.m = m
-        self.L = L
-        self.eps = eps
-        self.k = k
-        self.lam = lam
+# Define the variables to be used
+m = 1
+L = 100
+eps = 0.1
+k = 1
+lam = 1
 
-    # Define the anharmonic potential
-    def an_V(self, x):
-        return 0.5*self.k*x**2 + 0.25*self.lam*x**4
+# Define the anharmonic potential
+def an_V(x):
+    return 0.5*k*x**2 + 0.25*lam*x**4
 
-    # Define the anharmonic Hamiltonian
-    def an_H(self, x, p):
-        return self.an_V(x) + 0.5*p**2
-
-    # Run the HMC algorithm
-    def an_HMC_alg(self, n):
-        # Initialise the x values
-        x = [0]
-        # Start the loop to generate x values
-        for t in range(n+1):
-            # Draw the momentum from a Normal distribution
-            p = np.random.normal(0, self.m)
-            # Compute the first leapfrog step
-            p_star = p - 0.5*self.eps*(self.k*x[t] + self.lam*x[t]**3)
-            x_star = x[t] + self.eps*p_star/self.m
-            # Compute (x*, - p*) using L leapfrog steps of size eps
-            for l in range(1, self.L):
-                p_star = p_star - self.eps*(self.k*x_star + self.lam*x_star**3)
-                x_star = x_star + self.eps*p_star/self.m
-            # Compute the final step of the leapfrog method
-            p_star = p_star - 0.5*self.eps*(self.k*x_star + self.lam*x_star**3)
-            # Compute the acceptance ratio
-            r = np.exp(-self.an_H(x_star, p_star) + self.an_H(x[t], p))
-            # Draw W from a Uniform distribution
-            W = np.random.uniform(0, 1)
-            # Carry out the Metropolis test
-            if W <= min(1, r):
-                x.append(x_star)
-            else:
-                x.append(x[t])
-        return x
+# Define the anharmonic Hamiltonian
+def an_H(x, p,m):
+    return an_V(x) + 0.5*p**2/m
+  
+def test_normal_p(n,m):
+    '''
+    Before running the HMC algorithm, it is sensible to check that genrating p values from a normal distribution gives a correct kinetic energy distribution.
+    We generate n p samples taken from a normal distribution, compute corresponding kinetic energies, and plot them to find the distribution.  
+    '''
+    # Initialise the p_normals and KE lists
+    p_normals = []
+    KE_p = []
+    # Loop over n
+    for t in range(n+1):
+        # Generate the p values from the normal distribution
+        p = np.random.normal(0, m**0.5)
+        # Calculate the corresponding KE
+        KE = 0.5*p**2/m
+        # Append to the lists
+        p_normals.append(p)
+        KE_p.append(KE)
+    # Plot
+    plt.figure()
+    plt.hist(KE_p, bins = 20, edgecolor = 'black')
+    plt.show()
+    return p_normals, KE_p
+print(test_normal_p(10,1))
+    
+# Run the HMC algorithm
+def an_HMC_alg(n, L, eps):
+    '''
+    -Carry out the HMC algorithm using the leafrog method to generate x values. 
+    -Simultaenously compute and store KE, PE, exp(-delH).
+    -Calculate acceptance ratio. 
+    -Another way to check that the algorithm is working correctly is to check 
+    reversibility with each trajectory, so we also include this test.
+    '''
+    # Initialise the x values, KE values, errors, and the accepted values lists
+    x = [0]
+    KE_vals = []
+    errors = []
+    exps_delH = []
+    accepted = []
+    # Start the loop to generate x values
+    for t in range(n+1):
+        # Draw the momentum from a Normal distribution
+        p = np.random.normal(0, m**0.5)
+        # Compute the first leapfrog step
+        p_star = p - 0.5*eps*(k*x[t] + lam*x[t]**3)
+        x_star = x[t] + eps*p_star/m
+        # Compute (x*, - p*) using L leapfrog steps of size eps
+        for l in range(1, L):
+            p_star = p_star - eps*(k*x_star + lam*x_star**3)
+            x_star = x_star + eps*p_star/m
+        # Compute the final step of the leapfrog method
+        p_star = p_star - 0.5*eps*(k*x_star + lam*x_star**3)
+        # Compute the acceptance ratio
+        r = np.exp(-an_H(x_star, p_star,m ) + an_H(x[t], p,m))
+        # Draw W from a Uniform distribution
+        W = np.random.uniform(0, 1)
+        # Carry out the Metropolis test
+        if W <= min(1, r):
+            x.append(x_star)
+            accepted.append(x_star)
+        else:
+            x.append(x[t])
+        # Compute the KE terms for this trajectory and append to list
+        KE = 0.5*p_star**2/m
+        KE_vals.append(KE)
+        # Calculate exp(-delH) terms
+        exp_minus_del_H_ = np.exp(an_H(x_star,p_star,m) - an_H(x[t], p,m))
+        exps_delH.append(exp_minus_del_H_)
+        # Check reversibility
+        p_star = p_star + 0.5*eps*(k*x[t] + lam*x[t]**3)
+        x_star = x_star - eps*p_star/m
+        for l in range(1, L):
+            p_star = p_star + eps*(k*x_star + lam*x_star**3)
+            x_star = x_star - eps*p_star/m
+        p_backwards = p_star + 0.5*eps*(k*x_star + lam*x_star**3)
+        error = (p_backwards - p)
+        errors.append(error)
+         # Compute acceptance ratio
+        acc_rat = (len(accepted)/len(x))*100    
+        return x, KE_vals, exps_delH, errors, acc_rat
 
 # Find the expected value of x
 def exp_val(x):
     '''
-    Given a list of x values, compute the expected value
+    Given a list of x values, compute the expected value (rejecting burn-in).
     '''
-    return np.mean(x)
+    values_to_use = x[math.ceil(len(x)/10):]
+    return np.mean(values_to_use)
 
-# Investigating effect of changing k on the expected value of x
-# Initialise the lists
-k = []
-exp_x = []
-# Start the loop over different k values
-for i in range(1, 101):   
-    # Create an instance of the an_HMC class
-    an_HMC_instance = an_HMC(m=1, L=1000, eps=0.1, k=i, lam=1)
-    # Run the an_HMC algorithm
-    an_HMC_result = an_HMC_instance.an_HMC_alg(1000)
-    # Append the lists appropriately
-    k.append(i)
-    exp_x.append(exp_val(an_HMC_result))
-# Plot the results
-plt.figure()
-plt.plot(k, exp_x)
-plt.xlabel('k')
-plt.ylabel('<x>')
-plt.title('Expected value of x vs k')
-plt.grid(True)
-plt.savefig('exp_x_vs_k.png')
-
-# Investigating effect of changing lam on the expected value of x
-# Initialise the lists
-lam = []
-exp_x = []
-# Start the loop over different lam values
-for i in range(1, 101):   
-    # Create an instance of the an_HMC class
-    an_HMC_instance = an_HMC(m=1, L=1000, eps=0.1, k=1, lam=i)
-    # Run the an_HMC algorithm
-    an_HMC_result = an_HMC_instance.an_HMC_alg(1000)
-    # Append the lists appropriately
-    lam.append(i)
-    exp_x.append(exp_val(an_HMC_result))
-# Plot the results
-plt.figure()
-plt.plot(lam, exp_x)
-plt.xlabel('lam')
-plt.ylabel('<x>')
-plt.title('Expected value of x vs lam')
-plt.grid(True)
-plt.savefig('exp_x_vs_lam.png')
+print("Expected x =", exp_val(an_HMC_alg(100000,L,eps)[0]),\
+       "Expected KE = ",exp_val(an_HMC_alg(100000, L, eps)[1]),\
+        "Expected exp(-delH)= " ,exp_val(an_HMC_alg(100000,L,eps)[2]),\
+        "Expected error =", exp_val(an_HMC_alg(100000, L, eps)[3]),\
+        "Acceptance ratio =" ,an_HMC_alg(100000, L, eps)[4])
 

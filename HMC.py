@@ -81,7 +81,7 @@ def HMC(n,L,eps):
         # Carry out the Metropolis test
         if W <= min(1,r):
             x.append(x_star)
-            accepted.append(x)
+            accepted.append(x_star)
         else:
             x.append(x[t])
         # Compute the KE and PE terms for this trajectory and append to list
