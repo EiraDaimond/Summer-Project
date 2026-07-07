@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy as sc
+import math
 
 class RMHMC:
     '''
@@ -9,12 +9,11 @@ class RMHMC:
     shall denote G. In the 1D case, this is just a scalar. 
     '''
     # Define the variables to be used
-    def __init__(self, L=None, eps=None, k=None, lam=None, tol=1e-6):
+    def __init__(self, L=None, eps=None, k=None, lam=None):
         self.L = L
         self.eps = eps
         self.k = k
         self.lam = lam
-        self.tol = tol
 
     # Define the anharmonic potential term
     def an_V(self, x):
@@ -33,80 +32,93 @@ class RMHMC:
         return self.an_V(x) + self.K(p, x) 
 
     # Run the RMHMC algorithm
-    def RMHMC_alg(self, n, tol):
+    def RMHMC_alg(self, n):
         '''
         Carry out the RMHMC algorithm to generate x values. 
-        We will use the Generalised Leapfrog Method with the fixed point iteration.
+        We will use the Secant method for the fixed iteration in the Generalise Leapfrog Method. 
         '''
         # Initialise the x values
         x = [0]
         # Start the loop to generate x values
         for t in range(n+1):
-            # Initialise the x_star and p_star lists
-            x_stars = []
-            p_stars = []
             # Draw the momentum from a Normal distribution
             p = np.random.normal(0, (np.abs(self.G(x[t])))**0.5)
-            # Provide an initial guess value for p, initialise p_star
-            p_guess = p 
-            p_star = 0
-            # Start the fixed point iteration for the first leapfrog step
-            while True:
-                p_star = p_guess - 0.5*self.eps*\
-                    (self.k*x[t] + self.lam*x[t]**3 \
-                     + 0.5*p_guess**2*(-6*self.lam*x[t]) \
-                     + 0.5*abs(-6*self.lam*x[t])/abs(-self.k-3*self.lam*x[t]**2))
-                if abs(p_star - p_guess) < tol: 
-                    break
-                p_guess = p_star  
-            print(p_star)  
-            p_stars.append(p_star)
-            x_star = x[t] + self.eps*self.G(x[t])*p_star
-            x_stars.append(x_star)
-            # Compute (x*, - p*) using L leapfrog steps of size eps
-            for l in range(1, self.L):
-                p_current = p_star
-                p_guess = p_star
-                while True:
-                    p_star = p_current - self.eps\
-                                            *(self.k*x_star + self.lam*x_star**3\
-                                                + 0.5*p_guess**2*(-6*self.lam*x_star)\
-                                                + 0.5*abs(-6*self.lam*x_star)/abs(-self.k-3*self.lam*x_star**2))
-                    print("In while loop, p_star tracking:",p_star, p_star - p_guess)
-                    if abs(p_star - p_guess) < tol:
-                        break
-                    p_guess = p_star
-                p_stars.append(p_star)
-                x_star = x_star + self.eps*self.G(x_star)*p_star
-                x_stars.append(x_star)
-            # Compute the final step of the leapfrog method
-            p_current = p_star
-            p_guess = p_star
-            while True:
-                p_star = p_guess - 0.5*self.eps\
-                                        *(self.k*x[t] + self.lam*x[t]**3 + 0.5*p_guess**2*(-6*self.lam*x[t])\
-                                           + 0.5*abs(-6*self.lam*x[t])/abs(-self.k-3*self.lam*x[t]**2))
-                if abs(p_star - p_guess) < tol:
-                    break
-                p_guess = p_star
+            # Initialise the x_star and p_star lists
+            x_stars = [0]*(self.L+1)
+            p_stars = [p,p+1]*math.ceil(0.5*(self.L+1))
+            # Use Secant method for fixed point iteration
+            # Leapfrog first step
+            p_stars[2] = p_stars[1] - 2/(self.eps*(self.G(x_stars[1])))\
+                                *(-1 + (1-4*self.eps*(self.G(x_stars[1]))\
+                                        *(p_stars[1] + 0.5*self.eps*self.k*x_stars[1] \
+                                          +0.5*self.eps*self.lam*x_stars[1]**3 \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[1])/(self.G(x_stars[1]))))**0.5)\
+                                            *(p_stars[1] - p_stars[0])/(2/(self.eps*(self.G(x_stars[1])))\
+                                *(-1 + (1-4*self.eps*(self.G(x_stars[1]))\
+                                        *(p_stars[1] + 0.5*self.eps*self.k*x_stars[1] \
+                                          +0.5*self.eps*self.lam*x_stars[1]**3 \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[1])/(self.G(x_stars[1]))))**0.5)\
+                                            -(2/(self.eps*(self.G(x_stars[0])))\
+                                *(-1 + (1-4*self.eps*(self.G(x_stars[0]))\
+                                        *(p_stars[0] + 0.5*self.eps*self.k*x_stars[0] \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[0])/(self.G(x_stars[0]))))**0.5)))  
+            print("p_stars[2] = ", p_stars[2])
+            x_stars[2] = x_stars[1] + self.eps*self.G(x_stars[1])*p_stars[2]
+            print("x_stars[2]= ", x_stars[2])
+            # Start leapfrog loop
+            for i in range(3, self.L):
+                p_stars[i] = p_stars[i-1] - 1/(self.eps*(self.G(x_stars[i-1])))\
+                                *(-1 + (1-2*self.eps*(self.G(x_stars[i-1]))\
+                                        *(p_stars[i-1] + self.eps*self.k*x_stars[i-1] \
+                                          +0.5*self.eps*self.lam*x_stars[i-1]**3 \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[i-1])/(self.G(x_stars[i-1]))))**0.5)\
+                                            *(p_stars[i-1] - p_stars[i-2])/(2/(self.eps*(self.G(x_stars[i-1])))\
+                                *(-1 + (1-2*self.eps*(self.G(x_stars[i-1]))\
+                                        *(p_stars[i-1] + 0.5*self.eps*self.k*x_stars[i-1] \
+                                          +0.5*self.eps*self.lam*x_stars[i-1]**3 \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[i-1])/(self.G(x_stars[i-1]))))**0.5)\
+                                            -(2/(self.eps*(self.G(x_stars[i-2])))\
+                                *(-1 + (1-2*self.eps*(self.G(x_stars[i-2]))\
+                                        *(p_stars[i-2] + 0.5*self.eps*self.k*x_stars[i-2] \
+                                          +0.5*self.eps*self.lam*x_stars[i-2]**3 \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[i-2])/(self.G(x_stars[i-2]))))**0.5)))    
+                print("p_stars[",i,"] = ", p_stars[i])                            
+                x_stars[i] = x_stars[i-1] + self.eps*self.G(x_stars[i-1])*p_stars[i]
+                print("x_stars[",i,"] =", x_stars[i])
+            # Leapfrog final step
+            p_stars[self.L] = p_stars[self.L-1] - 2/(self.eps*(self.G(x_stars[self.L-1])))\
+                                *(-1 + (1-2*self.eps*(self.G(x_stars[self.L-1]))\
+                                        *(p_stars[self.L-1] + 0.5*self.eps*self.k*x_stars[self.L-1] \
+                                          +0.5*self.eps*self.lam*x_stars[self.L-1]**3 \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-1])/(self.G(x_stars[self.L-1]))))**0.5)\
+                                            *(p_stars[self.L-1] - p_stars[self.L-2])/(2/(self.eps*(self.G(x_stars[self.L-1])))\
+                                *(-1 + (1-2*self.eps*(self.G(x_stars[self.L-1]))\
+                                        *(p_stars[self.L-1] + 0.5*self.eps*self.k*x_stars[self.L-1] \
+                                          +0.5*self.eps*self.lam*x_stars[self.L-1]**3 \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-1])/(self.G(x_stars[self.L-1]))))**0.5)\
+                                            -(2/(self.eps*(self.G(x_stars[self.L-2])))\
+                                *(-1 + (1-2*self.eps*(self.G(x_stars[self.L-2]))\
+                                        *(p_stars[self.L-2] + 0.5*self.eps*self.k*x_stars[self.L-2] \
+                                          +0.5*self.eps*self.lam*x_stars[self.L-2]**3 \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-2])/(self.G(x_stars[self.L-2]))))**0.5)))
             # Compute the acceptance ratio
-            r = np.exp(-self.H(x_star, p_star) + self.H(x[t], p))
+            r = np.exp(-self.H(x_stars[self.L], p_stars[self.L]) + self.H(x[t], p))
             # Draw W from a Uniform distribution
             W = np.random.uniform(0, 1)            
             # Carry out the Metropolis test
             if W <= min(1, r):
-                x.append(x_star)
+                x.append(x_stars[self.L])
             else:
                 x.append(x[t])
         return x
 
 # Find the expected value of x
-def exp_val(x):
+#def exp_val(x):
     '''
     Given a list of x values, compute the expected value
     '''
-    return np.mean(x)
+    #return np.mean(x)
 
 # Testing the code
-RMHMC_test = RMHMC(L=10, eps=0.005, k=1, lam=1, tol = 1e-6)
-print(RMHMC_test.RMHMC_alg(10,tol=1e-6))
+RMHMC_test = RMHMC(L=10, eps=0.1, k=1, lam=1)
+print(RMHMC_test.RMHMC_alg(10))
