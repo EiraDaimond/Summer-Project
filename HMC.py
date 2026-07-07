@@ -48,17 +48,19 @@ print(test_normal_p(10,m))
 
 def HMC(n,L,eps):
     '''
-    Carry out the HMC algorithm using the leafrog method to generate x values. 
-    Simultaenously compute and store KE, PE, exp(-delH).
-    Another way to check that the algorithm is working correctly is to check 
+    -Carry out the HMC algorithm using the leafrog method to generate x values. 
+    -Simultaenously compute and store KE, PE, exp(-delH).
+    -Calculate acceptance ratio. 
+    -Another way to check that the algorithm is working correctly is to check 
     reversibility with each trajectory, so we also include this test.
     '''
-    # Initialise the x values, KE values, PE values, and the errors lists
+    # Initialise the x values, KE values, PE values, errors, and the accepted values lists
     x = [0]
     KE_vals = []
     PE_vals =[]
-    errors =[]
+    errors = []
     exps_delH = []
+    accepted = []
     # Start the loop to generate the x values
     for t in range(n+1):
         # Draw the momentum from a Normal distribution
@@ -79,6 +81,7 @@ def HMC(n,L,eps):
         # Carry out the Metropolis test
         if W <= min(1,r):
             x.append(x_star)
+            accepted.append(x)
         else:
             x.append(x[t])
         # Compute the KE and PE terms for this trajectory and append to list
@@ -98,7 +101,9 @@ def HMC(n,L,eps):
         p_backwards = p_star + 0.5*eps*k*x_star
         error = (p_backwards - p)
         errors.append(error)
-    return x, KE_vals, PE_vals, exps_delH, errors
+    # Compute acceptance ratio
+    acc_rat = (len(accepted)/len(x))*100
+    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat
 
 # Find the expected value of x
 def exp_val(x):
@@ -112,4 +117,5 @@ print("Expected x =", exp_val(HMC(100000,L,eps)[0]),\
        "Expected KE = ",exp_val(HMC(100000, L, eps)[1]), \
         "Expected PE =", exp_val(HMC(100000,L,eps)[2]),\
         "Expected exp(-delH)= " ,exp_val(HMC(100000,L,eps)[3]),\
-        "Expected error =", exp_val(HMC(100000, L, eps)[4]))
+        "Expected error =", exp_val(HMC(100000, L, eps)[4]),\
+        "Acceptance ratio =" ,HMC(100000, L, eps)[5])
