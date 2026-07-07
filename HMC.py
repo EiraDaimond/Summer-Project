@@ -14,11 +14,11 @@ def V(x,k):
     return 0.5*k*x**2 
 
 # Define the Hamiltonian function
-def H(x,p):
+def H(x,p, k, m):
     '''
     Given x,p, and V(x),compute the Hamiltonian
     '''
-    return V(x,k) + 0.5*p**2
+    return V(x,k) + 0.5*p**2/m
 
 def HMC(n,L,eps):
     '''
@@ -29,16 +29,16 @@ def HMC(n,L,eps):
     # Start the loop to generate the x values
     for t in range(n+1):
         # Draw the momentum from a Normal distribution
-        p = np.random.normal(0,m)
+        p = np.random.normal(0,m**0.5)
         # Carry out step 1 of the leapfrog method
-        p_star = p - 0.5*eps*x[t]
+        p_star = p - 0.5*eps*k*x[t]
         x_star = x[t] + eps*p_star/m
-        # Compute (x*, - p*) using L leapfrog steps of size eps
+        # Compute (x*,p*) using L leapfrog steps of size eps
         for l in range(1, L):
-            p_star = p_star - eps*x_star
+            p_star = p_star - eps*k*x_star
             x_star = x_star + eps*p_star/m
         # Carry out the final step of the leapfrog method
-        p_star = p_star - 0.5*eps*x_star
+        p_star = p_star - 0.5*eps*k*x_star
         # Compute the acceptance ratio
         r = np.exp(-H(x_star, p_star) + H(x[t],p))
         # Draw W from a Uniform distribution

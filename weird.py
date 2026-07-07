@@ -51,7 +51,7 @@ class RMHMC:
             p_star = 0
             # Start the fixed point iteration for the first leapfrog step
             while True:
-                p_star = p - 0.5*self.eps*\
+                p_star = p_guess - 0.5*self.eps*\
                     (self.k*x[t] + self.lam*x[t]**3 \
                      + 0.5*p_guess**2*(-6*self.lam*x[t]) \
                      + 0.5*abs(-6*self.lam*x[t])/abs(-self.k-3*self.lam*x[t]**2))
