@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 
 # Define the variables to be used
@@ -48,10 +49,16 @@ print(test_normal_p(10,m))
 def HMC(n,L,eps):
     '''
     Carry out the HMC algorithm using the leafrog method to generate x values. 
-    Simultaenously compute and story KE, PE, exp(-delH).
+    Simultaenously compute and store KE, PE, exp(-delH).
+    Another way to check that the algorithm is working correctly is to check 
+    reversibility with each trajectory, so we also include this test.
     '''
-    # Initialise the x values
+    # Initialise the x values, KE values, PE values, and the errors lists
     x = [0]
+    KE_vals = []
+    PE_vals =[]
+    errors =[]
+    exps_delH = []
     # Start the loop to generate the x values
     for t in range(n+1):
         # Draw the momentum from a Normal distribution
@@ -74,15 +81,35 @@ def HMC(n,L,eps):
             x.append(x_star)
         else:
             x.append(x[t])
-        # Compute the KE term for this trajectory
+        # Compute the KE and PE terms for this trajectory and append to list
         KE = 0.5*p_star**2/m
-    return x
+        PE = 0.5*k*x_star**2 
+        KE_vals.append(KE)
+        PE_vals.append(PE)
+        # Calculate exp(-delH) terms
+        exp_minus_del_H_ = np.exp(H(x_star,p_star) - H(x[t], p))
+        exps_delH.append(exp_minus_del_H_)
+        # Check reversibility
+        p_star = p_star + 0.5*eps*k*x[t]
+        x_star = x_star - eps*p_star/m
+        for l in range(1, L):
+            p_star = p_star + eps*k*x_star
+            x_star = x_star - eps*p_star/m
+        p_backwards = p_star + 0.5*eps*k*x_star
+        error = (p_backwards - p)
+        errors.append(error)
+    return x, KE_vals, PE_vals, exps_delH, errors
 
 # Find the expected value of x
 def exp_val(x):
     '''
-    Given a list of x values, compute the expected value
+    Given a list of values, compute the expected value (with burn-in removed)
     '''
-    return np.mean(x)   
+    values_to_use = x[math.ceil(len(x)/10):]
+    return np.mean(values_to_use)   
 
-print(exp_val(HMC(1000,L,eps)))
+print("Expected x =", exp_val(HMC(100000,L,eps)[0]),\
+       "Expected KE = ",exp_val(HMC(100000, L, eps)[1]), \
+        "Expected PE =", exp_val(HMC(100000,L,eps)[2]),\
+        "Expected exp(-delH)= " ,exp_val(HMC(100000,L,eps)[3]),\
+        "Expected error =", exp_val(HMC(100000, L, eps)[4]))
