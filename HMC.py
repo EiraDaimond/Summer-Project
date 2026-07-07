@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Define the variables to be used
 m = 1 
@@ -14,15 +15,40 @@ def V(x,k):
     return 0.5*k*x**2 
 
 # Define the Hamiltonian function
-def H(x,p, k, m):
+def H(x,p):
     '''
     Given x,p, and V(x),compute the Hamiltonian
     '''
     return V(x,k) + 0.5*p**2/m
+ 
+def test_normal_p(n,m):
+    '''
+    Before running the HMC algorithm, it is sensible to check that genrating p values from a normal distribution gives a correct kinetic energy distribution.
+    We generate n p samples taken from a normal distribution, compute corresponding kinetic energies, and plot them to find the distribution.  
+    '''
+    # Initialise the p_normals and KE lists
+    p_normals = []
+    KE_p = []
+    # Loop over n
+    for t in range(n+1):
+        # Generate the p values from the normal distribution
+        p = np.random.normal(0, m**0.5)
+        # Calculate the corresponding KE
+        KE = 0.5*p**2/m
+        # Append to the lists
+        p_normals.append(p)
+        KE_p.append(KE)
+    # Plot
+    plt.figure()
+    plt.hist(KE_p, bins = 20, edgecolor = 'black')
+    plt.show()
+    return p_normals, KE_p
+print(test_normal_p(10,m))
 
 def HMC(n,L,eps):
     '''
-    Carry out the HMC algorithm using the leafrog method to generate x values
+    Carry out the HMC algorithm using the leafrog method to generate x values. 
+    Simultaenously compute and story KE, PE, exp(-delH).
     '''
     # Initialise the x values
     x = [0]
@@ -48,6 +74,8 @@ def HMC(n,L,eps):
             x.append(x_star)
         else:
             x.append(x[t])
+        # Compute the KE term for this trajectory
+        KE = 0.5*p_star**2/m
     return x
 
 # Find the expected value of x
