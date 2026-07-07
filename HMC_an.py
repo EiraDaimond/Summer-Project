@@ -119,3 +119,4 @@ print("Expected x =", mean_and_sd(an_HMC_alg(100000,L,eps)[0])[0],\
         "Standardised standard deviation of error=", mean_and_sd(an_HMC_alg(100000,L,eps)[4])[1],\
         "Acceptance ratio =" ,an_HMC_alg(100000, L, eps)[5])
 
+
