@@ -42,9 +42,12 @@ def test_normal_p(n,m):
     # Plot
     plt.figure()
     plt.hist(KE_p, bins = 20, edgecolor = 'black')
+    plt.xlabel("KE_p values")
+    plt.ylabel("Frequency")
+    plt.title("KE distribution")
     plt.show()
     return p_normals, KE_p
-print(test_normal_p(10,m))
+print(test_normal_p(100000,m))
 
 def HMC(n,L,eps):
     '''
@@ -105,17 +108,24 @@ def HMC(n,L,eps):
     acc_rat = (len(accepted)/len(x))*100
     return x, KE_vals, PE_vals, exps_delH, errors, acc_rat
 
-# Find the expected value of x
-def exp_val(x):
+# Find the expected value of x and corresponding standardised standard deviation
+def mean_and_sd(x,m,n):
     '''
-    Given a list of values, compute the expected value (with burn-in removed)
+    Given a list of values, compute the expected value (with burn-in removed), 
+    and corresponding standardised standar deviation.
     '''
     values_to_use = x[math.ceil(len(x)/10):]
-    return np.mean(values_to_use)   
+    stand_sd = m**0.5/(n-1)**0.5
+    return np.mean(values_to_use), stand_sd   
 
-print("Expected x =", exp_val(HMC(100000,L,eps)[0]),\
-       "Expected KE = ",exp_val(HMC(100000, L, eps)[1]), \
-        "Expected PE =", exp_val(HMC(100000,L,eps)[2]),\
-        "Expected exp(-delH)= " ,exp_val(HMC(100000,L,eps)[3]),\
-        "Expected error =", exp_val(HMC(100000, L, eps)[4]),\
+print("Expected x =", mean_and_sd(HMC(100000,L,eps)[0])[0],\
+      "Standardised standard deviation of x=", mean_and_sd(HMC(100000,L,eps)[0])[1],\
+       "Expected KE = ",mean_and_sd(HMC(100000, L, eps)[1])[0], \
+       "Standardised standard deviation of KE = ", mean_and_sd(HMC(100000, L, eps)[1])[1],\
+        "Expected PE =", mean_and_sd(HMC(100000,L,eps)[2])[0],\
+        "Standardised standard deviation of PE = ", mean_and_sd(HMC(100000, L, eps)[2][1]),\
+        "Expected exp(-delH)= " ,mean_and_sd(HMC(100000,L,eps)[3])[0],\
+        "Standardised standard deviation of exp(-delH) = ", mean_and_sd(HMC(100000,L,eps)[3])[1],\
+        "Expected error =", mean_and_sd(HMC(100000, L, eps)[4])[0],\
+        "Standardised standard deviation of error=", mean_and_sd(HMC(100000,L,eps)[4])[1],\
         "Acceptance ratio =" ,HMC(100000, L, eps)[5])

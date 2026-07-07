@@ -99,16 +99,23 @@ def an_HMC_alg(n, L, eps):
         return x, KE_vals, exps_delH, errors, acc_rat
 
 # Find the expected value of x
-def exp_val(x):
+def mean_and_sd(x,m ,n):
     '''
     Given a list of x values, compute the expected value (rejecting burn-in).
     '''
     values_to_use = x[math.ceil(len(x)/10):]
-    return np.mean(values_to_use)
+    stand_sd = m**0.5/(n-1)**0.5
+    return np.mean(values_to_use), stand_sd
 
-print("Expected x =", exp_val(an_HMC_alg(100000,L,eps)[0]),\
-       "Expected KE = ",exp_val(an_HMC_alg(100000, L, eps)[1]),\
-        "Expected exp(-delH)= " ,exp_val(an_HMC_alg(100000,L,eps)[2]),\
-        "Expected error =", exp_val(an_HMC_alg(100000, L, eps)[3]),\
-        "Acceptance ratio =" ,an_HMC_alg(100000, L, eps)[4])
+print("Expected x =", mean_and_sd(an_HMC_alg(100000,L,eps)[0])[0],\
+      "Standardised standard deviation of x=", mean_and_sd(an_HMC_alg(100000,L,eps)[0])[1],\
+       "Expected KE = ",mean_and_sd(an_HMC_alg(100000, L, eps)[1])[0], \
+       "Standardised standard deviation of KE = ", mean_and_sd(an_HMC_alg(100000, L, eps)[1])[1],\
+        "Expected PE =", mean_and_sd(an_HMC_alg(100000,L,eps)[2])[0],\
+        "Standardised standard deviation of PE = ", mean_and_sd(an_HMC_alg(100000, L, eps)[2][1]),\
+        "Expected exp(-delH)= " ,mean_and_sd(an_HMC_alg(100000,L,eps)[3])[0],\
+        "Standardised standard deviation of exp(-delH) = ", mean_and_sd(an_HMC_alg(100000,L,eps)[3])[1],\
+        "Expected error =", mean_and_sd(an_HMC_alg(100000, L, eps)[4])[0],\
+        "Standardised standard deviation of error=", mean_and_sd(an_HMC_alg(100000,L,eps)[4])[1],\
+        "Acceptance ratio =" ,an_HMC_alg(100000, L, eps)[5])
 
