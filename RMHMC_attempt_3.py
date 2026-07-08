@@ -6,7 +6,8 @@ try and solve problems from there.
 I will also not use a class because that was unnecessary and made the code so complicated. 
 
 Problems:
-- Have 1/x which causes divide by 0 error
+- Have 1/x which causes divide by 0 error.... I tried to cheat by correcting x_values to 1e-9 if they're too small but
+this evidently doesn't give a true distrubution of x values.
 '''
 import numpy as np
 

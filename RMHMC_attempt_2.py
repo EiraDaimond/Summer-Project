@@ -58,7 +58,7 @@ class RMHMC:
             print(p_convs)
             # Use Secant method for fixed point iteration
             # Leapfrog first step
-            for i in range(2, 1000):
+            for i in range(2, 10):
               # We first force the square root to be real
               inner_val_1 = 1-4*self.eps*(self.G(x_stars[1]))\
                                         *(p_convs[i-1] + 0.5*self.eps*self.k*x_stars[1] \
@@ -91,35 +91,43 @@ class RMHMC:
             p_stars[2] = p_convs[len(p_convs)-1] 
             x_stars[2] = x_stars[1] + self.eps*self.G(x_stars[1])*p_stars[2]
             # Start leapfrog loop
-            # for j in range(3, self.L+1):
-            #   # Initialise new p_convs list
-            #   p_convs_new = [p_stars[j-1], p_stars[j]]
-            #   for i in range(1, 2):
-            #     # Force the square root to be real 
-            #   inner_val_1 = 1-2*self.eps*(self.G(x_stars[j-1]))\
-            #                             #*(p_convs_new[i-1] + self.eps*self.k*x_stars[j-1] \
-            #                               #+self.eps*self.lam*x_stars[j-1]**3 \
-            #                                 #+ 0.5*self.eps*abs(6*self.lam*x_stars[j-1])/(self.G(x_stars[j-1])))
-            #     #p_conv_root_1 = np.sqrt(max(0.0,inner_val_1))
-            #     #inner_val_2 = 1-2*self.eps*(self.G(x_stars[j-2]))\
-            #                             *(p_convs_new[i-2] + self.eps*self.k*x_stars[j-2] \
-            #                               +self.eps*self.lam*x_stars[j-2]**3 \
-            #                                 + 0.5*self.eps*abs(6*self.lam*x_stars[j-2])/(self.G(x_stars[j-2])))
-            #     p_conv_root_2 = np.sqrt(max(0.0, inner_val_2))
-            #     p_conv_new = p_convs_new[i-1] - 1/(self.eps*(self.G(x_stars[j-1])))\
-            #                     *(-1 + p_conv_root_1)\
-            #                                 *(p_convs_new[i-1] - p_convs_new[i-2])/(2/(self.eps*(self.G(x_stars[j-1])))\
-            #                     *(-1 + p_conv_root_1)\
-            #                                 -(2/(self.eps*(self.G(x_stars[j-2])))\
-            #                     *(-1 + p_conv_root_2))) 
-            #     p_convs_new.append(p_conv_new) 
-            #     if abs(p_convs_new[-1] - p_convs_new[-2]) < self.tol:
-            #       break                             
-            # p_stars[j] = p_convs_new[len(p_convs_new)-1]
-            # x_stars[j] = x_stars[j-1] + self.eps*self.G(x_stars[j-1])*p_stars[j]
-            # print("p_stars =", p_stars, "x_stars=", x_stars)
-            # # Leapfrog final step
-            # # Initialise new p_convs list
+            for j in range(3, self.L+1):
+            # Initialise new p_convs list
+                p_convs_new = [p_stars[j-1], p_stars[j]]
+                for i in range(2,10):
+                # Force the square root to be real 
+                    inner_val_1 = 1-2*self.eps*(self.G(x_stars[j-1]))\
+                                        *(p_convs_new[i-1] + self.eps*self.k*x_stars[j-1] \
+                                           +self.eps*self.lam*x_stars[j-1]**3 \
+                                             + 0.5*self.eps*abs(6*self.lam*x_stars[j-1])/(self.G(x_stars[j-1])))
+                    p_conv_root_1 = np.sqrt(max(0.0,inner_val_1))
+                    inner_val_2 = 1-2*self.eps*(self.G(x_stars[j-2]))\
+                                         *(p_convs_new[i-2] + self.eps*self.k*x_stars[j-2] \
+                                           +self.eps*self.lam*x_stars[j-2]**3 \
+                                            + 0.5*self.eps*abs(6*self.lam*x_stars[j-2])/(self.G(x_stars[j-2])))
+                    p_conv_root_2 = np.sqrt(max(0.0, inner_val_2))
+                    print("x_stars[",j-1,"]=", x_stars[j-1])
+                    print("G here =",self.G(x_stars[j-1]))
+                    print("Denominator=", self.eps*(self.G(x_stars[j-1])))
+                    # Ensure denominator is non-zero
+                    denominator = (2/(self.eps*(self.G(x_stars[1])))\
+                                *(-1 + p_conv_root_1))\
+                                            -(2/(self.eps*(self.G(x_stars[0])))\
+                                *(-1 + p_conv_root_2)) 
+                    if abs(denominator) < 1e-12:
+                        print("WARNING: Denominator 0")
+                        break
+                    p_conv_new = p_convs_new[i-1] - 1/(self.eps*(self.G(x_stars[j-1])))\
+                                 *(-1 + p_conv_root_1)\
+                                            *(p_convs_new[i-1] - p_convs_new[i-2])/denominator  
+                    p_convs_new.append(p_conv_new) 
+                    if abs(p_convs_new[-1] - p_convs_new[-2]) < self.tol:
+                        break                             
+            p_stars[j] = p_convs_new[len(p_convs_new)-1]
+            x_stars[j] = x_stars[j-1] + self.eps*self.G(x_stars[j-1])*p_stars[j]
+            print("p_stars =", p_stars, "x_stars=", x_stars)
+            # Leapfrog final step
+            # Initialise new p_convs list
             # p_convs_fin = [p_stars[self.L-2], p_stars[self.L-1]]
             # for i in range(1, 2):
             #   # Force the square root to be real
@@ -162,9 +170,11 @@ def exp_val(x):
     '''
     return np.mean(x)
 
-# Testing the code
-RMHMC_test = RMHMC(L=10, eps=0.01, k=1, lam=1, tol = 1e-6)
+# Testing the codes
+RMHMC_test = RMHMC(L=10, eps=0.000001, k=1, lam=1, tol = 1e-6)
 print("Expected value of x =", exp_val(RMHMC_test.RMHMC_alg(10)))
 
 '''FAILURE: I think this fixed point iteration method cannot be 
-applied here because the added term varies too darmatically; need another fixed point iteration method'''
+applied here because the added term varies too darmatically; need another fixed point iteration method
+
+- Maybe works with very small epsilon.'''
