@@ -4,6 +4,9 @@ Upon failure of the Secant method for fixed point iteration, we revert to the ba
 momentum values that got very large but I will try again in the hope that this is an appropriate method and
 try and solve problems from there.
 I will also not use a class because that was unnecessary and made the code so complicated. 
+
+Problems:
+- Have 1/x which causes divide by 0 error
 '''
 import numpy as np
 
@@ -35,7 +38,7 @@ def RMHMC_alg(n,eps,L,k,lam):
     We use the Piccard method for the fixed point iteration
     '''
     # Initialise the x list
-    x = [0]
+    x = [1]
     # Start the loop for filling in the x values
     for t in range(n+1):
         print("We are on iteration", t)
@@ -46,40 +49,43 @@ def RMHMC_alg(n,eps,L,k,lam):
         p_stars = [p]
         x_stars = [0]
         x_star = x_stars[-1]
+        # Ensure no divide by 0 problem (maybe this is cheating whoops)
+        if x_stars[-1]<1e-9:
+            x_stars[-1]=1e-9
         # Define variables that will be used for simplicty 
-        inner_val = 1-4*eps*(G(x_stars[-1],k,lam))\
-                                        *(p_stars[-1] + 0.5*eps*k*x_stars[-1] \
-                                          +0.5*eps*lam*x_stars[-1]**3 \
-                                            + 0.25*eps*abs(6*lam*x_stars[-1])/(G(x_stars[-1],k,lam)))
-        
+        inner_val = 1 - 6*eps*lam*x_stars[-1]\
+                            *(-p_stars[-1]+0.5*eps*k*x_stars[-1] +0.5*lam*x_stars[-1]**3\
+                              +1.5*abs(lam*x_stars[-1])/G(x_stars[-1],k,lam))
         print("inner_val=", inner_val)
         root = np.sqrt(max(0.0, inner_val)) # Ensure no negative sqrt
-        # First step 
-        p_star = (2/eps(G(x_star,k,lam)))*(1-0.5*eps*(1+root) # Note that we took the + soln
+        # First step
+        p_star = (1/(6*eps*lam*x_stars[-1]))*(-1+root)
         p_stars.append(p_star)
         x_star = x_star + eps*G(x_star,k,lam)*p_star
         x_stars.append(x_star)
         print("p_stars, x_stars", p_stars, x_stars)
         # Loop over leapfrog steps
         for i in range(1,L+1):
-            inner_val = 1-2*eps*(G(x_stars[-1],k,lam))\
-                                        *(p_stars[-1] + eps*k*x_stars[-1] \
-                                          +eps*lam*x_stars[-1]**3 \
-                                            + 0.5*eps*abs(6*lam*x_stars[-1])/(G(x_stars[-1],k,lam)))
+            if x_stars[-1]<1e-9:
+                x_stars[-1]=1e-9
+            inner_val = 1 - 12*eps*lam*x_stars[-1]\
+                            *(-p_stars[-1]+eps*k*x_stars[-1] +lam*x_stars[-1]**3\
+                              +3*abs(lam*x_stars[-1])/G(x_stars[-1],k,lam))
             root = np.sqrt(max(0.0, inner_val))
-            p_star = p_stars[-1] - eps*(1+root)
+            p_star = (1/12*eps*lam*x_stars[-1])*(-1+root)
             p_stars.append(p_star)
             x_star = x_star +eps*G(x_star,k,lam)*p_star
             x_stars.append(x_star)
             print("p_stars in leapfrog loop it", i, p_stars)
             print("x_stars in leapfrog loop it", i, x_stars)
         # Final leapfrog step
-        inner_val = 1-4*eps*(G(x_stars[-1],k,lam))\
-                                        *(p_stars[-1] + 0.5*eps*k*x_stars[-1] \
-                                          +0.5*eps*lam*x_stars[-1]**3 \
-                                            + 0.25*eps*abs(6*lam*x_stars[-1])/(G(x_stars[-1],k,lam)))
+        if x_stars[-1]<1e-9:
+                x_stars[-1]=1e-9
+        inner_val = 1 - 6*eps*lam*x_stars[-1]\
+                            *(-p_stars[-1]+0.5*eps*k*x_stars[-1] +0.5*lam*x_stars[-1]**3\
+                              +1.5*abs(lam*x_stars[-1])/G(x_stars[-1],k,lam)) 
         root = np.sqrt(max(0.0,inner_val))
-        p_star = p_stars[-1] - 0.5*eps*(1+root)
+        p_star = (1/(6*eps*lam*x_stars[-1]))*(-1+root)
         p_stars.append(p_star)
         print("p_stars list after final step", p_stars)
         print("x_stars list after final  step", x_stars)
@@ -98,7 +104,7 @@ def RMHMC_alg(n,eps,L,k,lam):
         else:
             x.append(x[t])
         # Compute the KE and append to lists
-        KE_vals.append()
+        #KE_vals.append()
         return x
     
 print(RMHMC_alg(10,0.1,10,1,1))
