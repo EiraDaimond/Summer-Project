@@ -47,7 +47,8 @@ class RMHMC:
         # Initialise the x values
         x = [0]
         # Start the loop to generate x values
-        for t in range(2):
+        for t in range(10):
+            print("ON MAIN ITERATION",t)
             # Draw the momentum from a Normal distribution
             p = np.random.normal(0, (np.abs(self.G(x[t])))**0.5)
             # Initialise the x_star and p_star lists
@@ -59,6 +60,7 @@ class RMHMC:
             # Use Secant method for fixed point iteration
             # Leapfrog first step
             for i in range(2, 10):
+              print("ON FIRST STEP ITERATION", i)
               # We first force the square root to be real
               inner_val_1 = 1-4*self.eps*(self.G(x_stars[1]))\
                                         *(p_convs[i-1] + 0.5*self.eps*self.k*x_stars[1] \
@@ -95,6 +97,7 @@ class RMHMC:
             # Initialise new p_convs list
                 p_convs_new = [p_stars[j-1], p_stars[j]]
                 for i in range(2,10):
+                    print("ON MIDDLE STEPS ITERATION", j,i)
                 # Force the square root to be real 
                     inner_val_1 = 1-2*self.eps*(self.G(x_stars[j-1]))\
                                         *(p_convs_new[i-1] + self.eps*self.k*x_stars[j-1] \
@@ -128,30 +131,31 @@ class RMHMC:
             print("p_stars =", p_stars, "x_stars=", x_stars)
             # Leapfrog final step
             # Initialise new p_convs list
-            # p_convs_fin = [p_stars[self.L-2], p_stars[self.L-1]]
-            # for i in range(1, 2):
-            #   # Force the square root to be real
-            #   inner_val_1 = 1-2*self.eps*(self.G(x_stars[self.L-1]))\
-            #                             *(p_convs_fin[i-1] + 0.5*self.eps*self.k*x_stars[self.L-1] \
-            #                               +0.5*self.eps*self.lam*x_stars[self.L-1]**3 \
-            #                                 + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-1])/(self.G(x_stars[self.L-1])))
-            #   p_conv_root_1 = np.sqrt(max(0.0,inner_val_1))
-            #   inner_val_2 = 1-2*self.eps*(self.G(x_stars[self.L-2]))\
-            #                             *(p_convs_fin[i-2] + 0.5*self.eps*self.k*x_stars[self.L-2] \
-            #                               +0.5*self.eps*self.lam*x_stars[self.L-2]**3 \
-            #                                 + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-2])/(self.G(x_stars[self.L-2])))
-            #   p_conv_root_2 = np.sqrt(max(0.0,inner_val_2))
-            #   p_conv_fin = p_convs_fin[i-1] - 2/(self.eps*(self.G(x_stars[self.L-1])))\
-            #                     *(-1 + p_conv_root_1)\
-            #                                 *(p_convs_fin[i-1] - p_convs_fin[i-2])/(2/(self.eps*(self.G(x_stars[self.L-1])))\
-            #                     *(-1 + p_conv_root_1)\
-            #                                 -(2/(self.eps*(self.G(x_stars[self.L-2])))\
-            #                     *(-1 + p_conv_root_2)))
-            #   p_convs_fin.append(p_conv_fin)
-            #   if abs(p_convs_fin[-1] - p_convs_fin[-2]) < self.tol:
-            #     break
-            # p_stars[self.L] = p_convs_fin[len(p_convs_fin)-1]
-            # print("p_stars =", p_stars, "x_stars=", x_stars)
+            p_convs_fin = [p_stars[self.L-2], p_stars[self.L-1]]
+            for i in range(1, 2):
+                print("ON END STEP ITERATION", i)
+                # Force the square root to be real
+                inner_val_1 = 1-2*self.eps*(self.G(x_stars[self.L-1]))\
+                                         *(p_convs_fin[i-1] + 0.5*self.eps*self.k*x_stars[self.L-1] \
+                                           +0.5*self.eps*self.lam*x_stars[self.L-1]**3 \
+                                             + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-1])/(self.G(x_stars[self.L-1])))
+                p_conv_root_1 = np.sqrt(max(0.0,inner_val_1))
+                inner_val_2 = 1-2*self.eps*(self.G(x_stars[self.L-2]))\
+                                         *(p_convs_fin[i-2] + 0.5*self.eps*self.k*x_stars[self.L-2] \
+                                           +0.5*self.eps*self.lam*x_stars[self.L-2]**3 \
+                                             + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-2])/(self.G(x_stars[self.L-2])))
+                p_conv_root_2 = np.sqrt(max(0.0,inner_val_2))
+                p_conv_fin = p_convs_fin[i-1] - 2/(self.eps*(self.G(x_stars[self.L-1])))\
+                                 *(-1 + p_conv_root_1)\
+                                             *(p_convs_fin[i-1] - p_convs_fin[i-2])/(2/(self.eps*(self.G(x_stars[self.L-1])))\
+                                 *(-1 + p_conv_root_1)\
+                                             -(2/(self.eps*(self.G(x_stars[self.L-2])))\
+                                 *(-1 + p_conv_root_2)))
+                p_convs_fin.append(p_conv_fin)
+                if abs(p_convs_fin[-1] - p_convs_fin[-2]) < self.tol:
+                    break
+            p_stars[self.L] = p_convs_fin[len(p_convs_fin)-1]
+            print("p_stars =", p_stars, "x_stars=", x_stars)
             # Compute the acceptance ratio
             r = np.exp(-self.H(x_stars[self.L-1], p_stars[self.L]) + self.H(x[t], p))
             # Draw W from a Uniform distribution
@@ -161,6 +165,7 @@ class RMHMC:
                 x.append(x_stars[self.L])
             else:
                 x.append(x[t])
+            
         return x
 
 # Find the expected value of x
