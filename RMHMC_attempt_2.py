@@ -42,12 +42,12 @@ class RMHMC:
     def RMHMC_alg(self, n, tol=None):
         '''
         Carry out the RMHMC algorithm to generate x values. 
-        We will use the Secant method for the fixed iteration in the Generalise Leapfrog Method. 
+        We will use the Secant method for the fixed iteration in the Generalised Leapfrog Method. 
         '''
         # Initialise the x values
         x = [0]
         # Start the loop to generate x values
-        for t in range(n+1):
+        for t in range(2):
             # Draw the momentum from a Normal distribution
             p = np.random.normal(0, (np.abs(self.G(x[t])))**0.5)
             # Initialise the x_star and p_star lists
@@ -55,9 +55,10 @@ class RMHMC:
             p_stars = [p]*(self.L+1)
             # Initialise the p_conv lists
             p_convs = [p,p+1]
+            print(p_convs)
             # Use Secant method for fixed point iteration
             # Leapfrog first step
-            for i in range(1, 100):
+            for i in range(2, 1000):
               # We first force the square root to be real
               inner_val_1 = 1-4*self.eps*(self.G(x_stars[1]))\
                                         *(p_convs[i-1] + 0.5*self.eps*self.k*x_stars[1] \
@@ -69,69 +70,80 @@ class RMHMC:
                                           +0.5*self.eps*self.lam*x_stars[2]**3 \
                                             + 0.25*self.eps*abs(6*self.lam*x_stars[2])/(self.G(x_stars[2])))
               p_conv_root_2 = np.sqrt(max(0.0, inner_val_2))
-              p_conv = p_convs[i-1] - 2/(self.eps*(self.G(x_stars[1])))\
-                                *(-1+p_conv_root_1)\
-                                            *(p_convs[i-1] - p_convs[i-2])/(2/(self.eps*(self.G(x_stars[1])))\
+              # Ensure denominator is non-zero
+              denominator = (2/(self.eps*(self.G(x_stars[1])))\
                                 *(-1 + p_conv_root_1))\
                                             -(2/(self.eps*(self.G(x_stars[0])))\
                                 *(-1 + p_conv_root_2)) 
-              p_convs.append(p_conv) 
-              if abs(p_convs[i] - p_convs[i-1]) < self.tol:
+              if abs(denominator) < 1e-12:
+                print("WARNING: Denominator 0")
+                break
+              p_conv = p_convs[i-1] - 2/(self.eps*(self.G(x_stars[1])))\
+                                *(-1+p_conv_root_1)\
+                                            *(p_convs[i-1] - p_convs[i-2])/denominator
+              print("Added term=", 2/(self.eps*(self.G(x_stars[1])))\
+                                *(-1+p_conv_root_1)\
+                                            *(p_convs[i-1] - p_convs[i-2])/denominator)
+              p_convs.append(p_conv)
+              if abs(p_convs[-1] - p_convs[-2]) < self.tol:
                   break 
+              print("p_convs[",i," is now=", p_convs[i])
             p_stars[2] = p_convs[len(p_convs)-1] 
             x_stars[2] = x_stars[1] + self.eps*self.G(x_stars[1])*p_stars[2]
-            print("p_stars =", p_stars, "x_stars=", x_stars)
             # Start leapfrog loop
-            for j in range(3, self.L+1):
-              # Initialise new p_convs list
-              p_convs_new = [p_stars[2], p_stars[2]+1]
-              for i in range(1, 100):
-                # Force the square root to be real 
-                p_conv_new = p_convs_new[i-1] - 1/(self.eps*(self.G(x_stars[j-1])))\
-                                *(-1 + (1-2*self.eps*(self.G(x_stars[j-1]))\
-                                        *(p_convs_new[i-1] + self.eps*self.k*x_stars[j-1] \
-                                          +0.5*self.eps*self.lam*x_stars[j-1]**3 \
-                                            + 0.25*self.eps*abs(6*self.lam*x_stars[j-1])/(self.G(x_stars[j-1]))))**0.5)\
-                                            *(p_convs_new[i-1] - p_convs_new[i-2])/(2/(self.eps*(self.G(x_stars[j-1])))\
-                                *(-1 + (1-2*self.eps*(self.G(x_stars[j-1]))\
-                                        *(p_convs_new[i-1] + 0.5*self.eps*self.k*x_stars[j-1] \
-                                          +0.5*self.eps*self.lam*x_stars[j-1]**3 \
-                                            + 0.25*self.eps*abs(6*self.lam*x_stars[j-1])/(self.G(x_stars[j-1]))))**0.5)\
-                                            -(2/(self.eps*(self.G(x_stars[j-2])))\
-                                *(-1 + (1-2*self.eps*(self.G(x_stars[j-2]))\
-                                        *(p_convs_new[i-2] + 0.5*self.eps*self.k*x_stars[j-2] \
-                                          +0.5*self.eps*self.lam*x_stars[j-2]**3 \
-                                            + 0.25*self.eps*abs(6*self.lam*x_stars[j-2])/(self.G(x_stars[j-2]))))**0.5))) 
-                p_convs_new.append(p_conv_new) 
-                if abs(p_convs_new[i] - p_convs_new[i-1]) < self.tol:
-                  break                             
-                p_stars[j] = p_convs_new[len(p_convs_new)-1]
-                x_stars[j] = x_stars[j-1] + self.eps*self.G(x_stars[j-1])*p_stars[j]
-            print("p_stars =", p_stars, "x_stars=", x_stars)
-            # Leapfrog final step
-            # Initialise new p_convs list
-            p_convs_fin = [p_stars[self.L-2], p_stars[self.L-1]]
-            for i in range(1, 100):
-              p_conv_fin = p_convs_fin[i-1] - 2/(self.eps*(self.G(x_stars[self.L-1])))\
-                                *(-1 + (1-2*self.eps*(self.G(x_stars[self.L-1]))\
-                                        *(p_convs_fin[i-1] + 0.5*self.eps*self.k*x_stars[self.L-1] \
-                                          +0.5*self.eps*self.lam*x_stars[self.L-1]**3 \
-                                            + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-1])/(self.G(x_stars[self.L-1]))))**0.5)\
-                                            *(p_convs_fin[i-1] - p_convs_fin[i-2])/(2/(self.eps*(self.G(x_stars[self.L-1])))\
-                                *(-1 + (1-2*self.eps*(self.G(x_stars[self.L-1]))\
-                                        *(p_convs_fin[i-1] + 0.5*self.eps*self.k*x_stars[self.L-1] \
-                                          +0.5*self.eps*self.lam*x_stars[self.L-1]**3 \
-                                            + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-1])/(self.G(x_stars[self.L-1]))))**0.5)\
-                                            -(2/(self.eps*(self.G(x_stars[self.L-2])))\
-                                *(-1 + (1-2*self.eps*(self.G(x_stars[self.L-2]))\
-                                        *(p_convs_fin[i-2] + 0.5*self.eps*self.k*x_stars[self.L-2] \
-                                          +0.5*self.eps*self.lam*x_stars[self.L-2]**3 \
-                                            + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-2])/(self.G(x_stars[self.L-2]))))**0.5)))
-              p_convs_fin.append(p_conv_fin)
-              if abs(p_convs_fin[i] - p_convs_fin[i-1]) < self.tol:
-                break
-              p_stars[self.L] = p_convs_fin[len(p_convs_fin)-1]
-            print("p_stars =", p_stars, "x_stars=", x_stars)
+            # for j in range(3, self.L+1):
+            #   # Initialise new p_convs list
+            #   p_convs_new = [p_stars[j-1], p_stars[j]]
+            #   for i in range(1, 2):
+            #     # Force the square root to be real 
+            #   inner_val_1 = 1-2*self.eps*(self.G(x_stars[j-1]))\
+            #                             #*(p_convs_new[i-1] + self.eps*self.k*x_stars[j-1] \
+            #                               #+self.eps*self.lam*x_stars[j-1]**3 \
+            #                                 #+ 0.5*self.eps*abs(6*self.lam*x_stars[j-1])/(self.G(x_stars[j-1])))
+            #     #p_conv_root_1 = np.sqrt(max(0.0,inner_val_1))
+            #     #inner_val_2 = 1-2*self.eps*(self.G(x_stars[j-2]))\
+            #                             *(p_convs_new[i-2] + self.eps*self.k*x_stars[j-2] \
+            #                               +self.eps*self.lam*x_stars[j-2]**3 \
+            #                                 + 0.5*self.eps*abs(6*self.lam*x_stars[j-2])/(self.G(x_stars[j-2])))
+            #     p_conv_root_2 = np.sqrt(max(0.0, inner_val_2))
+            #     p_conv_new = p_convs_new[i-1] - 1/(self.eps*(self.G(x_stars[j-1])))\
+            #                     *(-1 + p_conv_root_1)\
+            #                                 *(p_convs_new[i-1] - p_convs_new[i-2])/(2/(self.eps*(self.G(x_stars[j-1])))\
+            #                     *(-1 + p_conv_root_1)\
+            #                                 -(2/(self.eps*(self.G(x_stars[j-2])))\
+            #                     *(-1 + p_conv_root_2))) 
+            #     p_convs_new.append(p_conv_new) 
+            #     if abs(p_convs_new[-1] - p_convs_new[-2]) < self.tol:
+            #       break                             
+            # p_stars[j] = p_convs_new[len(p_convs_new)-1]
+            # x_stars[j] = x_stars[j-1] + self.eps*self.G(x_stars[j-1])*p_stars[j]
+            # print("p_stars =", p_stars, "x_stars=", x_stars)
+            # # Leapfrog final step
+            # # Initialise new p_convs list
+            # p_convs_fin = [p_stars[self.L-2], p_stars[self.L-1]]
+            # for i in range(1, 2):
+            #   # Force the square root to be real
+            #   inner_val_1 = 1-2*self.eps*(self.G(x_stars[self.L-1]))\
+            #                             *(p_convs_fin[i-1] + 0.5*self.eps*self.k*x_stars[self.L-1] \
+            #                               +0.5*self.eps*self.lam*x_stars[self.L-1]**3 \
+            #                                 + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-1])/(self.G(x_stars[self.L-1])))
+            #   p_conv_root_1 = np.sqrt(max(0.0,inner_val_1))
+            #   inner_val_2 = 1-2*self.eps*(self.G(x_stars[self.L-2]))\
+            #                             *(p_convs_fin[i-2] + 0.5*self.eps*self.k*x_stars[self.L-2] \
+            #                               +0.5*self.eps*self.lam*x_stars[self.L-2]**3 \
+            #                                 + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-2])/(self.G(x_stars[self.L-2])))
+            #   p_conv_root_2 = np.sqrt(max(0.0,inner_val_2))
+            #   p_conv_fin = p_convs_fin[i-1] - 2/(self.eps*(self.G(x_stars[self.L-1])))\
+            #                     *(-1 + p_conv_root_1)\
+            #                                 *(p_convs_fin[i-1] - p_convs_fin[i-2])/(2/(self.eps*(self.G(x_stars[self.L-1])))\
+            #                     *(-1 + p_conv_root_1)\
+            #                                 -(2/(self.eps*(self.G(x_stars[self.L-2])))\
+            #                     *(-1 + p_conv_root_2)))
+            #   p_convs_fin.append(p_conv_fin)
+            #   if abs(p_convs_fin[-1] - p_convs_fin[-2]) < self.tol:
+            #     break
+            # p_stars[self.L] = p_convs_fin[len(p_convs_fin)-1]
+            # print("p_stars =", p_stars, "x_stars=", x_stars)
             # Compute the acceptance ratio
             r = np.exp(-self.H(x_stars[self.L-1], p_stars[self.L]) + self.H(x[t], p))
             # Draw W from a Uniform distribution
@@ -151,5 +163,5 @@ def exp_val(x):
     return np.mean(x)
 
 # Testing the code
-RMHMC_test = RMHMC(L=10, eps=0.1, k=1, lam=1, tol = 1e-6)
+RMHMC_test = RMHMC(L=10, eps=0.01, k=1, lam=1, tol = 1e-6)
 print("Expected value of x =", exp_val(RMHMC_test.RMHMC_alg(10)))
