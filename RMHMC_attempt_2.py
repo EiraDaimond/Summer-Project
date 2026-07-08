@@ -165,3 +165,6 @@ def exp_val(x):
 # Testing the code
 RMHMC_test = RMHMC(L=10, eps=0.01, k=1, lam=1, tol = 1e-6)
 print("Expected value of x =", exp_val(RMHMC_test.RMHMC_alg(10)))
+
+'''FAILURE: I think this fixed point iteration method cannot be 
+applied here because the added term varies too darmatically; need another fixed point iteration method'''
