@@ -9,11 +9,12 @@ class RMHMC:
     shall denote G. In the 1D case, this is just a scalar. 
     '''
     # Define the variables to be used
-    def __init__(self, L=None, eps=None, k=None, lam=None):
+    def __init__(self, L=None, eps=None, k=None, lam=None, tol=None):
         self.L = L
         self.eps = eps
         self.k = k
         self.lam = lam
+        self.tol = tol
 
     # Define the anharmonic potential term
     def an_V(self, x):
@@ -32,7 +33,7 @@ class RMHMC:
         return self.an_V(x) + self.K(p, x) 
 
     # Run the RMHMC algorithm
-    def RMHMC_alg(self, n):
+    def RMHMC_alg(self, n, tol=None):
         '''
         Carry out the RMHMC algorithm to generate x values. 
         We will use the Secant method for the fixed iteration in the Generalise Leapfrog Method. 
@@ -45,64 +46,83 @@ class RMHMC:
             p = np.random.normal(0, (np.abs(self.G(x[t])))**0.5)
             # Initialise the x_star and p_star lists
             x_stars = [0]*(self.L+1)
-            p_stars = [p,p+1]*math.ceil(0.5*(self.L+1))
+            p_stars = [p]*(self.L+1)
+            # Initialise the p_conv lists
+            p_convs = [p,p+1]
             # Use Secant method for fixed point iteration
             # Leapfrog first step
-            p_stars[2] = p_stars[1] - 2/(self.eps*(self.G(x_stars[1])))\
+            for i in range(100):
+              p_conv = p_convs[i-1] - 2/(self.eps*(self.G(x_stars[1])))\
                                 *(-1 + (1-4*self.eps*(self.G(x_stars[1]))\
-                                        *(p_stars[1] + 0.5*self.eps*self.k*x_stars[1] \
+                                        *(p_convs[i-1] + 0.5*self.eps*self.k*x_stars[1] \
                                           +0.5*self.eps*self.lam*x_stars[1]**3 \
                                             + 0.25*self.eps*abs(6*self.lam*x_stars[1])/(self.G(x_stars[1]))))**0.5)\
-                                            *(p_stars[1] - p_stars[0])/(2/(self.eps*(self.G(x_stars[1])))\
+                                            *(p_convs[i-1] - p_convs[i-2])/(2/(self.eps*(self.G(x_stars[1])))\
                                 *(-1 + (1-4*self.eps*(self.G(x_stars[1]))\
-                                        *(p_stars[1] + 0.5*self.eps*self.k*x_stars[1] \
+                                        *(p_convs[i-1] + 0.5*self.eps*self.k*x_stars[1] \
                                           +0.5*self.eps*self.lam*x_stars[1]**3 \
                                             + 0.25*self.eps*abs(6*self.lam*x_stars[1])/(self.G(x_stars[1]))))**0.5)\
                                             -(2/(self.eps*(self.G(x_stars[0])))\
                                 *(-1 + (1-4*self.eps*(self.G(x_stars[0]))\
-                                        *(p_stars[0] + 0.5*self.eps*self.k*x_stars[0] \
-                                            + 0.25*self.eps*abs(6*self.lam*x_stars[0])/(self.G(x_stars[0]))))**0.5)))  
-            print("p_stars[2] = ", p_stars[2])
+                                        *(p_convs[i-2] + 0.5*self.eps*self.k*x_stars[0] \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[0])/(self.G(x_stars[0]))))**0.5))) 
+              p_convs.append(p_conv) 
+              if p_convs[i] - p_stars[i-1] < self.tol:
+                  break 
+            p_stars[2] = p_convs[len(p_convs)-1] 
             x_stars[2] = x_stars[1] + self.eps*self.G(x_stars[1])*p_stars[2]
-            print("x_stars[2]= ", x_stars[2])
+            print("p_stars =", p_stars, "x_stars=", x_stars)
             # Start leapfrog loop
-            for i in range(3, self.L):
-                p_stars[i] = p_stars[i-1] - 1/(self.eps*(self.G(x_stars[i-1])))\
-                                *(-1 + (1-2*self.eps*(self.G(x_stars[i-1]))\
-                                        *(p_stars[i-1] + self.eps*self.k*x_stars[i-1] \
-                                          +0.5*self.eps*self.lam*x_stars[i-1]**3 \
-                                            + 0.25*self.eps*abs(6*self.lam*x_stars[i-1])/(self.G(x_stars[i-1]))))**0.5)\
-                                            *(p_stars[i-1] - p_stars[i-2])/(2/(self.eps*(self.G(x_stars[i-1])))\
-                                *(-1 + (1-2*self.eps*(self.G(x_stars[i-1]))\
-                                        *(p_stars[i-1] + 0.5*self.eps*self.k*x_stars[i-1] \
-                                          +0.5*self.eps*self.lam*x_stars[i-1]**3 \
-                                            + 0.25*self.eps*abs(6*self.lam*x_stars[i-1])/(self.G(x_stars[i-1]))))**0.5)\
-                                            -(2/(self.eps*(self.G(x_stars[i-2])))\
-                                *(-1 + (1-2*self.eps*(self.G(x_stars[i-2]))\
-                                        *(p_stars[i-2] + 0.5*self.eps*self.k*x_stars[i-2] \
-                                          +0.5*self.eps*self.lam*x_stars[i-2]**3 \
-                                            + 0.25*self.eps*abs(6*self.lam*x_stars[i-2])/(self.G(x_stars[i-2]))))**0.5)))    
-                print("p_stars[",i,"] = ", p_stars[i])                            
-                x_stars[i] = x_stars[i-1] + self.eps*self.G(x_stars[i-1])*p_stars[i]
-                print("x_stars[",i,"] =", x_stars[i])
+            for j in range(3, self.L+1):
+              # Initialise new p_convs list
+              p_convs_new = [p_stars[2], p_stars[2]+1]
+              for i in range(100):
+                p_conv_new = p_convs_new[i-1] - 1/(self.eps*(self.G(x_stars[j-1])))\
+                                *(-1 + (1-2*self.eps*(self.G(x_stars[j-1]))\
+                                        *(p_convs_new[i-1] + self.eps*self.k*x_stars[j-1] \
+                                          +0.5*self.eps*self.lam*x_stars[j-1]**3 \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[j-1])/(self.G(x_stars[j-1]))))**0.5)\
+                                            *(p_convs_new[i-1] - p_convs_new[i-2])/(2/(self.eps*(self.G(x_stars[j-1])))\
+                                *(-1 + (1-2*self.eps*(self.G(x_stars[j-1]))\
+                                        *(p_convs_new[i-1] + 0.5*self.eps*self.k*x_stars[j-1] \
+                                          +0.5*self.eps*self.lam*x_stars[j-1]**3 \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[j-1])/(self.G(x_stars[j-1]))))**0.5)\
+                                            -(2/(self.eps*(self.G(x_stars[j-2])))\
+                                *(-1 + (1-2*self.eps*(self.G(x_stars[j-2]))\
+                                        *(p_convs_new[i-2] + 0.5*self.eps*self.k*x_stars[j-2] \
+                                          +0.5*self.eps*self.lam*x_stars[j-2]**3 \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[j-2])/(self.G(x_stars[j-2]))))**0.5))) 
+                p_convs_new.append(p_conv_new) 
+                if p_convs_new[i] - p_convs_new[i-1] < self.tol:
+                  break                             
+                p_stars[j] = p_convs_new[len(p_convs_new)-1]
+                x_stars[j] = x_stars[j-1] + self.eps*self.G(x_stars[j-1])*p_stars[j]
+            print("p_stars =", p_stars, "x_stars=", x_stars)
             # Leapfrog final step
-            p_stars[self.L] = p_stars[self.L-1] - 2/(self.eps*(self.G(x_stars[self.L-1])))\
+            # Initialise new p_convs list
+            p_convs_fin = [p_stars[self.L-1], p_stars[self.L]]
+            for i in range(100):
+              p_conv_fin = p_convs_fin[i-1] - 2/(self.eps*(self.G(x_stars[self.L])))\
+                                *(-1 + (1-2*self.eps*(self.G(x_stars[self.L]))\
+                                        *(p_convs_fin[i-1] + 0.5*self.eps*self.k*x_stars[self.L] \
+                                          +0.5*self.eps*self.lam*x_stars[self.L]**3 \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[self.L])/(self.G(x_stars[self.L]))))**0.5)\
+                                            *(p_convs_fin[i-1] - p_convs_fin[i-2])/(2/(self.eps*(self.G(x_stars[self.L])))\
+                                *(-1 + (1-2*self.eps*(self.G(x_stars[self.L]))\
+                                        *(p_convs_fin[i-1] + 0.5*self.eps*self.k*x_stars[self.L] \
+                                          +0.5*self.eps*self.lam*x_stars[self.L]**3 \
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[self.L])/(self.G(x_stars[self.L]))))**0.5)\
+                                            -(2/(self.eps*(self.G(x_stars[self.L-1])))\
                                 *(-1 + (1-2*self.eps*(self.G(x_stars[self.L-1]))\
-                                        *(p_stars[self.L-1] + 0.5*self.eps*self.k*x_stars[self.L-1] \
+                                        *(p_convs_fin[i-2] + 0.5*self.eps*self.k*x_stars[self.L-1] \
                                           +0.5*self.eps*self.lam*x_stars[self.L-1]**3 \
-                                            + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-1])/(self.G(x_stars[self.L-1]))))**0.5)\
-                                            *(p_stars[self.L-1] - p_stars[self.L-2])/(2/(self.eps*(self.G(x_stars[self.L-1])))\
-                                *(-1 + (1-2*self.eps*(self.G(x_stars[self.L-1]))\
-                                        *(p_stars[self.L-1] + 0.5*self.eps*self.k*x_stars[self.L-1] \
-                                          +0.5*self.eps*self.lam*x_stars[self.L-1]**3 \
-                                            + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-1])/(self.G(x_stars[self.L-1]))))**0.5)\
-                                            -(2/(self.eps*(self.G(x_stars[self.L-2])))\
-                                *(-1 + (1-2*self.eps*(self.G(x_stars[self.L-2]))\
-                                        *(p_stars[self.L-2] + 0.5*self.eps*self.k*x_stars[self.L-2] \
-                                          +0.5*self.eps*self.lam*x_stars[self.L-2]**3 \
-                                            + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-2])/(self.G(x_stars[self.L-2]))))**0.5)))
+                                            + 0.25*self.eps*abs(6*self.lam*x_stars[self.L-1])/(self.G(x_stars[self.L-1]))))**0.5)))
+              if p_convs_fin[i] - p_convs_fin[i-1] < self.tol:
+                break
+              p_stars[self.L+1] = p_convs_fin[len(p_convs_fin)-1]
+            print("p_stars =", p_stars, "x_stars=", x_stars)
             # Compute the acceptance ratio
-            r = np.exp(-self.H(x_stars[self.L], p_stars[self.L]) + self.H(x[t], p))
+            r = np.exp(-self.H(x_stars[self.L], p_stars[self.L+1]) + self.H(x[t], p))
             # Draw W from a Uniform distribution
             W = np.random.uniform(0, 1)            
             # Carry out the Metropolis test
@@ -120,5 +140,5 @@ class RMHMC:
     #return np.mean(x)
 
 # Testing the code
-RMHMC_test = RMHMC(L=10, eps=0.1, k=1, lam=1)
+RMHMC_test = RMHMC(L=10, eps=0.1, k=1, lam=1, tol = 1e-6)
 print(RMHMC_test.RMHMC_alg(10))
