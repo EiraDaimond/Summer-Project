@@ -44,8 +44,9 @@ class RMHMC:
         Carry out the RMHMC algorithm to generate x values. 
         We will use the Secant method for the fixed iteration in the Generalised Leapfrog Method. 
         '''
-        # Initialise the x values
+        # Initialise the x and KE values
         x = [0]
+        KE_vals =[]
         # Start the loop to generate x values
         for t in range(10):
             print("ON MAIN ITERATION",t)
@@ -165,8 +166,10 @@ class RMHMC:
                 x.append(x_stars[self.L])
             else:
                 x.append(x[t])
-            
-        return x
+            # Compute KE vals
+            print("KE here", self.K(p_stars[self.L], x[t+1]))
+            KE_vals.append(self.K(p_stars[self.L], x[t+1]))
+        return x, KE_vals
 
 # Find the expected value of x
 def exp_val(x):
@@ -177,7 +180,7 @@ def exp_val(x):
 
 # Testing the codes
 RMHMC_test = RMHMC(L=10, eps=0.000001, k=1, lam=1, tol = 1e-6)
-print("Expected value of x =", exp_val(RMHMC_test.RMHMC_alg(10)))
+print(RMHMC_test.RMHMC_alg(10))
 
 '''FAILURE: I think this fixed point iteration method cannot be 
 applied here because the added term varies too darmatically; need another fixed point iteration method
