@@ -17,7 +17,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     def G(x):
         return k + 3*lam*x**2
     
-    # Define M (including dta).... to be used to avoid division by 0 errors
+    # Define M (including delta).... to be used to avoid division by 0 errors
     def M(x, d):
         return np.sqrt(abs(G(x)**2+d**2))
 
@@ -37,7 +37,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     # Initialise the x values
     x = [0]
     # Start the loop to generate x values
-    for t in range(n+1):
+    for t in range(2):
         # Initialise the x_star and p_star lists
         x_stars = []
         p_stars = []
@@ -49,57 +49,71 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         # Start the fixed point iteration for the first leapfrog step
         # p convergence
         while True:
-            print("1st step p_star is:",p_star)
+            print("Mass metric is:",M(x[t],d))
             p_star = p - 0.5*eps*\
                 (k*x[t] + lam*x[t]**3 \
                     + 0.5*p_guess**2*(-6*lam*x[t]) \
                     + 0.5*abs(-6*lam*x[t])\
                     /M(x[t],d))
+            print(0.5*eps*\
+                (k*x[t] + lam*x[t]**3 \
+                    + 0.5*p_guess**2*(-6*lam*x[t]) \
+                    + 0.5*abs(-6*lam*x[t])\
+                    /M(x[t],d)))
+            print("1st step p_star is:",p_star)
+            print("1st step p_guess is:",p_guess)
+            print("Difference in ps:", abs(p_guess - p_star))
             if abs(p_star - p_guess) < tol: 
                 break
-            p_guess = p_star  
+            else:
+                p_guess = p_star  
         print("Moving on from 1st step with p_star", p_star)  
         p_stars.append(p_star)
         # x convergence
         x_guess = x[t]
         x_star = 0
-        while True:
-            print("1st step x_star is :", x_star)
-            x_star = x[t] + 0.5*eps\
-                            *(p_star*M(x[t],d)+p_star*M(x_guess,d))
-            if abs(x_star - x_guess) < tol:
-                break
-            x_guess = x_star
-        print("Moving on from 1st step with x_star", x_star)
-        x_stars.append(x_star)
-        # Compute (x*, - p*) using L leapfrog steps of size eps
-        for l in range(1, L):
-            p_current = p_star
-            p_guess = p_star
-            p_star = 0
-            while True:
-                p_star = p_current - eps\
-                                        *(k*x_star + lam*x_star**3\
-                                             + 0.5*p_guess**2*(-6*lam*x_star)\
-                                             + 0.5*abs(-6*lam*x_star)/M(x_star,d))
-                if abs(p_star - p_guess) < tol:
-                    break
-                p_guess = p_star
-            print("Moving on from middle step iter [",l"] with p_star", p_star)
-            p_stars.append(p_star)
-            # x convergence
-            x_current = x_star
-            x_guess = x_star
-            x_star = 0
-            while True:
-                print("Middle step iter[",l,"] x_star is :", x_star)
-                x_star = x_current + 0.5*eps\
-                            *(p_star*M(x_current,d)+p_star*M(x_guess,d))
-                if abs(x_star - x_guess) < tol:
-                    break
-                x_guess = x_star
-            print("Moving on from middle step iter[",l"] with x_star", x_star)
-            x_stars.append(x_star)
+        # while True:
+        #     print("1st step x_star is :", x_star)
+        #     x_star = x[t] + 0.5*eps\
+        #                     *(p_star*M(x[t],d)+p_star*M(x_guess,d))
+        #     if abs(x_star - x_guess) < tol:
+        #         break
+        #     x_guess = x_star
+        # print("Moving on from 1st step with x_star", x_star)
+        # x_stars.append(x_star)
+        # # Compute (x*, - p*) using L leapfrog steps of size eps
+        # for l in range(1, L):
+        #     p_current = p_star
+        #     p_guess = p_star
+        #     p_star = 0
+        #     while True:
+        #         print("Middle step iter[",l,"] p_star is :", p_star)
+        #         print("Mass metric is:",M(x_star,d))
+        #         if M(x_star,d) < 1e14:
+        #             break
+        #         p_star = p_current - eps\
+        #                                 *(k*x_star + lam*x_star**3\
+        #                                      + 0.5*p_guess**2*(-6*lam*x_star)\
+        #                                      + 0.5*abs(-6*lam*x_star)/M(x_star,d))
+        #         print("Difference in ps", abs(p_star - p_guess))
+        #         if abs(p_star - p_guess) < tol:
+        #             break
+        #         p_guess = p_star
+        #     print("Moving on from middle step iter [",l,"] with p_star", p_star)
+        #     p_stars.append(p_star)
+        #     # x convergence
+        #     x_current = x_star
+        #     x_guess = x_star
+        #     x_star = 0
+        #     while True:
+        #         print("Middle step iter[",l,"] x_star is :", x_star)
+        #         x_star = x_current + 0.5*eps\
+        #                     *(p_star*M(x_current,d)+p_star*M(x_guess,d))
+        #         if abs(x_star - x_guess) < tol:
+        #             break
+        #         x_guess = x_star
+        #     print("Moving on from middle step iter[",l,"] with x_star", x_star)
+        #     x_stars.append(x_star)
         # # Compute the final step of the leapfrog method
         # p_current = p_star
         # p_guess = p_star
@@ -128,4 +142,4 @@ def exp_val(x):
     '''
     return np.mean(x)
 
-print(RMHMC(10,0.1,1,1,1e-6,10,1e-12))
+print(RMHMC(10,0.1,1,1,1e-6,10,1e-6))
