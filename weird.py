@@ -35,9 +35,9 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     We will use the Generalised Leapfrog Method with the fixed point iteration.
     '''
     # Initialise the x values
-    x = [0.1]
+    x = [0.1] # COMMENT: Wanted to use 0 but that doesn't work for the fixed point iteration
     # Start the loop to generate x values
-    for t in range(1):
+    for t in range(2):
         # Initialise the x_star and p_star lists
         x_stars = []
         p_stars = []
@@ -73,8 +73,8 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         x_star = 0
         count = 1
         while True:
-            count = count + 1
             print("Count =",count)
+            count = count + 1
             print("1st step x_star is :", x_star)
             x_star = x[t] + 0.5*eps\
                             *(p_star*M(x[t],d)+p_star*M(x_guess,d))
@@ -85,59 +85,77 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         print("Moving on from 1st step with x_star", x_star)
         print("CODE WORKS UP TO HERE")
         x_stars.append(x_star)
-        # # Compute (x*, - p*) using L leapfrog steps of size eps
-        # for l in range(1, L):
-        #     p_current = p_star
-        #     p_guess = p_star
-        #     p_star = 0
-        #     while True:
-        #         print("Middle step iter[",l,"] p_star is :", p_star)
-        #         print("Mass metric is:",M(x_star,d))
-        #         if M(x_star,d) < 1e14:
-        #             break
-        #         p_star = p_current - eps\
-        #                                 *(k*x_star + lam*x_star**3\
-        #                                      + 0.5*p_guess**2*(-6*lam*x_star)\
-        #                                      + 0.5*abs(-6*lam*x_star)/M(x_star,d))
-        #         print("Difference in ps", abs(p_star - p_guess))
-        #         if abs(p_star - p_guess) < tol:
-        #             break
-        #         p_guess = p_star
-        #     print("Moving on from middle step iter [",l,"] with p_star", p_star)
-        #     p_stars.append(p_star)
-        #     # x convergence
-        #     x_current = x_star
-        #     x_guess = x_star
-        #     x_star = 0
-        #     while True:
-        #         print("Middle step iter[",l,"] x_star is :", x_star)
-        #         x_star = x_current + 0.5*eps\
-        #                     *(p_star*M(x_current,d)+p_star*M(x_guess,d))
-        #         if abs(x_star - x_guess) < tol:
-        #             break
-        #         x_guess = x_star
-        #     print("Moving on from middle step iter[",l,"] with x_star", x_star)
-        #     x_stars.append(x_star)
-        # # Compute the final step of the leapfrog method
-        # p_current = p_star
-        # p_guess = p_star
-        # while True:
-        #     p_star = p_guess - 0.5*eps\
-        #                             *(k*x[t] + lam*x[t]**3 + 0.5*p_guess**2*(-6*lam*x[t])\
-        #                                 + 0.5*abs(-6*lam*x[t])/M(x[t],d))
-        #     if abs(p_star - p_guess) < tol:
-        #         break
-    #     #     p_guess = p_star
-    #     # Compute the acceptance ratio
-    #     r = np.exp(-H(x_star, p_star) + H(x[t], p))
-    #     # Draw W from a Uniform distribution
-    #     W = np.random.uniform(0, 1)            
-    #     # Carry out the Metropolis test
-    #     if W <= min(1, r):
-    #         x.append(x_star)
-    #     else:
-    #         x.append(x[t])
-    # return x
+        # Compute (x*, - p*) using L leapfrog steps of size eps
+        for l in range(1, L):
+            p_current = p_star
+            p_guess = p_star
+            p_star = 0
+            count = 1
+            while True:
+                count = count +1
+                print("Count=",count)
+                print("Middle step iter[",l,"] p_star is :", p_star)
+                print("Mass metric is:",M(x_star,d))
+                if M(x_star,d) < 1e-14:
+                    break
+                p_star = p_current - eps\
+                                        *(k*x_star + lam*x_star**3\
+                                             + 0.5*p_guess**2*(-6*lam*x_star)\
+                                             + 0.5*abs(-6*lam*x_star)/M(x_star,d))
+                if p_star > 1e14:
+                    break
+                if p_star < -1e14:
+                    break
+                print("Difference in ps", abs(p_star - p_guess))
+                if abs(p_star - p_guess) < tol:
+                    break
+                p_guess = p_star
+                print()
+            print("Moving on from middle step iter [",l,"] with p_star", p_star)
+            p_stars.append(p_star)
+            # x convergence
+            x_current = x_star
+            x_guess = x_star
+            x_star = 0
+            count = 1
+            while True:
+                print("Count=",count)
+                count = count+1
+                print("Middle step iter[",l,"] x_star is :", x_star)
+                x_star = x_current + 0.5*eps\
+                            *(p_star*M(x_current,d)+p_star*M(x_guess,d))
+                if abs(x_star - x_guess) < tol:
+                    break
+                x_guess = x_star
+                print()
+            print("Moving on from middle step iter[",l,"] with x_star", x_star)
+            x_stars.append(x_star)
+        # Compute the final step of the leapfrog method
+        p_current = p_star
+        p_guess = p_star
+        count = 1
+        print("Mass metric is:",M(x_star,d))
+        while True:
+            print("Count=",count)
+            count = count+1
+            print("p_star is :", p_star)
+            p_star = p_guess - 0.5*eps\
+                                    *(k*x[t] + lam*x[t]**3 + 0.5*p_guess**2*(-6*lam*x[t])\
+                                        + 0.5*abs(-6*lam*x[t])/M(x[t],d))
+            if abs(p_star - p_guess) < tol:
+                break
+            p_guess = p_star
+            print()
+        # Compute the acceptance ratio
+        r = np.exp(-H(x_star, p_star) + H(x[t], p))
+        # Draw W from a Uniform distribution
+        W = np.random.uniform(0, 1)            
+        # Carry out the Metropolis test
+        if W <= min(1, r):
+            x.append(x_star)
+        else:
+            x.append(x[t])
+    return x
 
 # Find the expected value of x
 def exp_val(x):
