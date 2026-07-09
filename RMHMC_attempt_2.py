@@ -32,7 +32,7 @@ class RMHMC:
 
     # Define the kinetic energy term (include correction term)
     def K(self, p, x):
-        return 0.5*p*self.G(x)*p + 0.5*np.log(2*np.pi*np.abs(self.G(x)))
+        return 0.5*p*self.G(x)*p + 0.5*np.log(np.abs(self.G(x)))
 
     # Define the Hamiltonian
     def H(self, x, p):
