@@ -35,7 +35,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     We will use the Generalised Leapfrog Method with the fixed point iteration.
     '''
     # Initialise the x values
-    x = [0]
+    x = [1]
     # Start the loop to generate x values
     for t in range(2):
         # Initialise the x_star and p_star lists
@@ -48,30 +48,30 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         p_star = 0
         # Start the fixed point iteration for the first leapfrog step
         # p convergence
-        while True:
-            print("Mass metric is:",M(x[t],d))
-            p_star = p - 0.5*eps*\
-                (k*x[t] + lam*x[t]**3 \
-                    + 0.5*p_guess**2*(-6*lam*x[t]) \
-                    + 0.5*abs(-6*lam*x[t])\
-                    /M(x[t],d))
-            print(0.5*eps*\
-                (k*x[t] + lam*x[t]**3 \
-                    + 0.5*p_guess**2*(-6*lam*x[t]) \
-                    + 0.5*abs(-6*lam*x[t])\
-                    /M(x[t],d)))
-            print("1st step p_star is:",p_star)
-            print("1st step p_guess is:",p_guess)
-            print("Difference in ps:", abs(p_guess - p_star))
-            if abs(p_star - p_guess) < tol: 
-                break
-            else:
-                p_guess = p_star  
-        print("Moving on from 1st step with p_star", p_star)  
-        p_stars.append(p_star)
-        # x convergence
-        x_guess = x[t]
-        x_star = 0
+        # while True:
+        print("Mass metric is:",M(x[t],d))
+        #     p_star = p - 0.5*eps*\
+        #         (k*x[t] + lam*x[t]**3 \
+        #             + 0.5*p_guess**2*(-6*lam*x[t]) \
+        #             + 0.5*abs(-6*lam*x[t])\
+        #             /M(x[t],d))
+        #     print(0.5*eps*\
+        #         (k*x[t] + lam*x[t]**3 \
+        #             + 0.5*p_guess**2*(-6*lam*x[t]) \
+        #             + 0.5*abs(-6*lam*x[t])\
+        #             /M(x[t],d)))
+        #     print("1st step p_star is:",p_star)
+        #     print("1st step p_guess is:",p_guess)
+        #     print("Difference in ps:", abs(p_guess - p_star))
+        #     if abs(p_star - p_guess) < tol: 
+        #         break
+        #     else:
+        #         p_guess = p_star  
+        # print("Moving on from 1st step with p_star", p_star)  
+        # p_stars.append(p_star)
+        # # x convergence
+        # x_guess = x[t]
+        # x_star = 0
         # while True:
         #     print("1st step x_star is :", x_star)
         #     x_star = x[t] + 0.5*eps\
@@ -123,17 +123,17 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         #                                 + 0.5*abs(-6*lam*x[t])/M(x[t],d))
         #     if abs(p_star - p_guess) < tol:
         #         break
-        #     p_guess = p_star
-        # Compute the acceptance ratio
-        r = np.exp(-H(x_star, p_star) + H(x[t], p))
-        # Draw W from a Uniform distribution
-        W = np.random.uniform(0, 1)            
-        # Carry out the Metropolis test
-        if W <= min(1, r):
-            x.append(x_star)
-        else:
-            x.append(x[t])
-    return x
+    #     #     p_guess = p_star
+    #     # Compute the acceptance ratio
+    #     r = np.exp(-H(x_star, p_star) + H(x[t], p))
+    #     # Draw W from a Uniform distribution
+    #     W = np.random.uniform(0, 1)            
+    #     # Carry out the Metropolis test
+    #     if W <= min(1, r):
+    #         x.append(x_star)
+    #     else:
+    #         x.append(x[t])
+    # return x
 
 # Find the expected value of x
 def exp_val(x):
