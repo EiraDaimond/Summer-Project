@@ -83,7 +83,6 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             x_guess = x_star
             print()
         print("Moving on from 1st step with x_star", x_star)
-        print("CODE WORKS UP TO HERE")
         x_stars.append(x_star)
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L):
@@ -96,6 +95,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                 print("Count=",count)
                 print("Middle step iter[",l,"] p_star is :", p_star)
                 print("Mass metric is:",M(x_star,d))
+                print(M(0,d))
                 if M(x_star,d) < 1e-14:
                     break
                 p_star = p_current - eps\
@@ -120,6 +120,13 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             count = 1
             while True:
                 print("Count=",count)
+                print(M(0,d))
+                print(M(x_current,d))
+                print(M(x_guess,d))
+                if M(x_guess,d) > 1e14:
+                    break
+                if M(x_guess,d) < -1e14:
+                    break
                 count = count+1
                 print("Middle step iter[",l,"] x_star is :", x_star)
                 x_star = x_current + 0.5*eps\
@@ -130,22 +137,22 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                 print()
             print("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
-        # Compute the final step of the leapfrog method
-        p_current = p_star
-        p_guess = p_star
-        count = 1
-        print("Mass metric is:",M(x_star,d))
-        while True:
-            print("Count=",count)
-            count = count+1
-            print("p_star is :", p_star)
-            p_star = p_guess - 0.5*eps\
-                                    *(k*x[t] + lam*x[t]**3 + 0.5*p_guess**2*(-6*lam*x[t])\
-                                        + 0.5*abs(-6*lam*x[t])/M(x[t],d))
-            if abs(p_star - p_guess) < tol:
-                break
-            p_guess = p_star
-            print()
+        # # Compute the final step of the leapfrog method
+        # p_current = p_star
+        # p_guess = p_star
+        # count = 1
+        # print("Mass metric is:",M(x_star,d))
+        # while True:
+        #     print("Count=",count)
+        #     count = count+1
+        #     print("p_star is :", p_star)
+        #     p_star = p_guess - 0.5*eps\
+        #                             *(k*x[t] + lam*x[t]**3 + 0.5*p_guess**2*(-6*lam*x[t])\
+        #                                 + 0.5*abs(-6*lam*x[t])/M(x[t],d))
+        #     if abs(p_star - p_guess) < tol:
+        #         break
+        #     p_guess = p_star
+        #     print()
         # Compute the acceptance ratio
         r = np.exp(-H(x_star, p_star) + H(x[t], p))
         # Draw W from a Uniform distribution
