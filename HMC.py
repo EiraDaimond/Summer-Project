@@ -93,7 +93,7 @@ def HMC(n,L,eps):
         KE_vals.append(KE)
         PE_vals.append(PE)
         # Calculate exp(-delH) terms
-        exp_minus_del_H_ = np.exp(H(x_star,p_star) - H(x[t], p))
+        exp_minus_del_H_ = np.exp(H(x[-1],p_star) - H(x[t], p))
         exps_delH.append(exp_minus_del_H_)
         # Check reversibility
         p_star = p_star + 0.5*eps*k*x[t]
