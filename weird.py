@@ -107,7 +107,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         print("STARTING MIDDLE STEPS")
         print()
         # Compute (x*, - p*) using L leapfrog steps of size eps
-        for l in range(1, 4):
+        for l in range(1, n+1):
             p_current = p_star
             p_guess = p_star
             p_star = 0
@@ -220,4 +220,4 @@ def exp_val(x):
     '''
     return np.mean(x)
 
-print(RMHMC(100,0.1,1,1,1e-6,10,1e-6))
+print(RMHMC(1e8,1e-8,1,1,1e-6,100000,1e-6))
