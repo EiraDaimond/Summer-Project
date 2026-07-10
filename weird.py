@@ -2,6 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
+# Define the variables to be used
+L = int(1e8)
+eps = 1e-8
+k = 1
+lam = 1
+n = 10
+
 def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     '''
     Rewriting the anharmonic HMC class but for RMHMC in one dimension. 
@@ -110,10 +117,10 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         x_stars.append(x_star)
         #("CODE WORKS UP TO HERE")
         #()
-        #("STARTING MIDDLE STEPS")
+        print("STARTING MIDDLE STEPS")
         #()
         # Compute (x*, - p*) using L leapfrog steps of size eps
-        for l in range(1, n+1):
+        for l in range(1, L+1):
             p_current = p_star
             p_guess = p_star
             p_star = 0
@@ -133,15 +140,15 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                 #("p_guess is", p_guess)
                 #("Difference in ps", abs(p_star - p_guess))
                 if p_star > 1e14:
-                    #("BROKE p_star too big")
+                    print("BROKE p_star too big")
                     break
                 else:
                     if p_star < -1e14:
-                        #("BROKE p_star too big -ve")
+                        print("BROKE p_star too big -ve")
                         break
                     else:
                         if abs(p_star - p_guess) < tol:
-                            #("STOPPING WHILE LOOP for p")
+                            #print("STOPPING WHILE LOOP for p")
                             break 
                         else:
                             p_guess = p_star
@@ -164,11 +171,11 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                 x_star = x_current + 0.5*eps\
                             *(p_star*M(x_current,d)+p_star*M(x_guess,d))
                 if x_star > 1e14:
-                    #("BROKE x_star too big")
+                    print("BROKE x_star too big")
                     break
                 else:
                     if x_star < -1e14:
-                        #("BROKE x_star too big -ve")
+                        print("BROKE x_star too big -ve")
                         break
                     else:
                         if abs(x_star - x_guess) < tol:
@@ -180,7 +187,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             #("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
         #()
-        #("STARTING FINAL STEPS")
+        print("STARTING FINAL STEPS")
         #()
         # Compute the final step of the leapfrog method
         p_current = p_star
@@ -196,11 +203,11 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             #("p_guess is", p_guess)
             #("Difference in ps:", abs(p_star - p_guess))
             if p_star > 1e14:
-                #("BROKE p_star too big")
+                print("BROKE p_star too big")
                 break
             else:
                 if p_star < -1e14:
-                    #("BROKE p_star too big -ve")
+                    print("BROKE p_star too big -ve")
                     break
                 else:
                     if abs(p_star - p_guess) < tol:
@@ -218,15 +225,19 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             accepted.append(x_star)
         else:
             x.append(x[t])
+        #print("x looks like:", x)
         # Compute the KE and append to list
         KE = K(x[-1],p_star,d)
         KE_vals.append(KE)
+        #print("KE_vals looks like:", KE_vals)
         # Compute the PE and append to list
         PE = an_V(x[-1])
         PE_vals.append(PE)
+        #print("PE_vals looks like:", PE_vals)
         # Compute the exp(-delH)
         exp_minus_del_H_ = np.exp(H(x[-1],p_star) - H(x[t], p))
         exps_delH.append(exp_minus_del_H_)
+        #print("exps_minus_delH looks like:", exps_delH)
         # Check reversibility
         p_star = p_star + 0.5*eps\
                             *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
@@ -234,50 +245,56 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         x_star = x_star - 0.5*eps\
                             *(p_star*M(x_current,d)+p_star*M(x_guess,d))
         for l in range(1, L):
+            #print("On reversibility check, iter", l)
             p_star = p_star + eps\
                                 *(k*x_star + lam*x_star**3\
                                     + 0.5*p_guess**2*(-6*lam*x_star)\
                                     + 0.5*abs(-6*lam*x_star)/M(x_star,d))
             x_star = x_star - 0.5*eps\
                             *(p_star*M(x[t],d)+p_star*M(x_guess,d))
-        p_backwards = p_star + 0.5*eps\
+            p_backwards = p_star + 0.5*eps\
                             *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
                                 + 0.5*abs(-6*lam*x_star)/M(x_star,d))
-        error = (p_backwards - p)
-        errors.append(error)
+            error = (p_backwards - p)
+            errors.append(error)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
     return x, KE_vals, PE_vals, exps_delH, errors, acc_rat
     
 # Find the expected value of x and corresponding standardised standard deviation
-def mean_and_sd(x, L, eps, k, lam, tol, n, d):
+def mean_and_sd(RMHMC, n, d):
     '''
     Given a list of values, compute the expected value (with burn-in removed), 
     and corresponding standardised standar deviation.
     '''
-    values_to_use = x[math.ceil(len(x)/10):]
-    # Initialise the sd_list
-    sd_list = [0]*(len(values_to_use))
-    for i in range(len(values_to_use)+1):
-        sd_list[i] = RMHMC(L,eps,k,lam,tol,n,d).M(values_to_use[i], d)
-    stand_sd = np.sqrt((np.mean(sd_list))/(n-1))
-    return np.mean(values_to_use), stand_sd      
+    # Initialise output
+    expected_values = []
+    st_ds = []
+    for j in range(6):
+        values_to_use = RMHMC[j][math.ceil(len( RMHMC[j])/10):]
+        expected_values.append(np.mean(values_to_use))
+        # Initialise the sd_list
+        sd_list = [0]*(len(values_to_use))
+        for i in range(len(values_to_use)+1):
+            sd_list[i] = RMHMC.M(values_to_use[i], d)
+        stand_sd = np.sqrt((np.mean(sd_list))/(n-1))
+        st_ds.append(stand_sd)
+    return expected_values, st_ds    
 
-print(RMHMC(1e8,1e-8,1,1,1e-6,10000,1e-6))
-
-print("Expected x =", mean_and_sd(RMHMC(1e8,1e-8,1,1,1e-6,10000,1e-6)[6][0] ,\
-      "Standardised standard deviation of x=", RMHMC(1e8,1e-8,1,1,1e-6,10000,1e-6)[6][1],\
-       "Expected KE = ",RMHMC(1e8,1e-8,1,1,1e-6,10000,1e-6)[], \
-       "Standardised standard deviation of KE = ", mean_and_sd(HMC(100000, L, eps)[1])[1],\
-        "Expected PE =", mean_and_sd(HMC(100000,L,eps)[2])[0],\
-        "Standardised standard deviation of PE = ", mean_and_sd(HMC(100000, L, eps)[2][1]),\
-        "Expected exp(-delH)= " ,mean_and_sd(HMC(100000,L,eps)[3])[0],\
-        "Standardised standard deviation of exp(-delH) = ", mean_and_sd(HMC(100000,L,eps)[3])[1],\
-        "Expected error =", mean_and_sd(HMC(100000, L, eps)[4])[0],\
-        "Standardised standard deviation of error=", mean_and_sd(HMC(100000,L,eps)[4])[1],\
-        "Acceptance ratio =" ,HMC(100000, L, eps)[5])
+print(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)
+print("Expected x =", mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[0][0] ,\
+      "Standardised standard deviation of x=",mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[1][0] ,\
+       "Expected KE = ",mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[0][1], \
+       "Standardised standard deviation of KE = ",mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[1][1],\
+        "Expected PE =", mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[0][2],\
+        "Standardised standard deviation of PE = ", mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[1][2],\
+        "Expected exp(-delH)= " ,mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[0][3],\
+        "Standardised standard deviation of exp(-delH) = ", mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[1][3],\
+        "Expected error =", mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[0][4],\
+        "Standardised standard deviation of error=", mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[1][4],\
+        "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
 '''
 COMMENTS:
-- Want Leps = 1 (will later change), at mo this is resulting in many L iterations, code takes a long time to run.
+- Want Leps = 1 (will later change), at mo this is resulting in many L iterations (1e8,1e-8), code takes a long time to run.
 - Tolerance I have chosen as 1e-6... I feel like this is still pretty high but maybe I can adapt it later. 
 '''

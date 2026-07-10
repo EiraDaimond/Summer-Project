@@ -4,7 +4,7 @@ import math
 
 # Define the variables to be used
 m = 1
-L = 100
+L = 10
 eps = 0.1
 k = 1
 lam = 1
@@ -17,29 +17,29 @@ def an_V(x):
 def an_H(x, p,m):
     return an_V(x) + 0.5*p**2/m
   
-def test_normal_p(n,m):
-    '''
-    Before running the HMC algorithm, it is sensible to check that genrating p values from a normal distribution gives a correct kinetic energy distribution.
-    We generate n p samples taken from a normal distribution, compute corresponding kinetic energies, and plot them to find the distribution.  
-    '''
-    # Initialise the p_normals and KE lists
-    p_normals = []
-    KE_p = []
-    # Loop over n
-    for t in range(n+1):
-        # Generate the p values from the normal distribution
-        p = np.random.normal(0, m**0.5)
-        # Calculate the corresponding KE
-        KE = 0.5*p**2/m
-        # Append to the lists
-        p_normals.append(p)
-        KE_p.append(KE)
-    # Plot
-    plt.figure()
-    plt.hist(KE_p, bins = 20, edgecolor = 'black')
-    plt.show()
-    return p_normals, KE_p
-print(test_normal_p(10,1))
+# def test_normal_p(n,m):
+#     '''
+#     Before running the HMC algorithm, it is sensible to check that genrating p values from a normal distribution gives a correct kinetic energy distribution.
+#     We generate n p samples taken from a normal distribution, compute corresponding kinetic energies, and plot them to find the distribution.  
+#     '''
+#     # Initialise the p_normals and KE lists
+#     p_normals = []
+#     KE_p = []
+#     # Loop over n
+#     for t in range(n+1):
+#         # Generate the p values from the normal distribution
+#         p = np.random.normal(0, m**0.5)
+#         # Calculate the corresponding KE
+#         KE = 0.5*p**2/m
+#         # Append to the lists
+#         p_normals.append(p)
+#         KE_p.append(KE)
+#     # Plot
+#     plt.figure()
+#     plt.hist(KE_p, bins = 20, edgecolor = 'black')
+#     plt.show()
+#     return p_normals, KE_p
+# print(test_normal_p(10,1))
     
 # Run the HMC algorithm
 def an_HMC_alg(n, L, eps):
@@ -94,29 +94,31 @@ def an_HMC_alg(n, L, eps):
         p_backwards = p_star + 0.5*eps*(k*x_star + lam*x_star**3)
         error = (p_backwards - p)
         errors.append(error)
-         # Compute acceptance ratio
-        acc_rat = (len(accepted)/len(x))*100    
-        return x, KE_vals, exps_delH, errors, acc_rat
+    # Compute acceptance ratio
+    acc_rat = (len(accepted)/len(x))*100    
+    return x, KE_vals, exps_delH, errors, acc_rat
 
-# Find the expected value of x
+# Find the expected value and standard deviation of x
 def mean_and_sd(x,m ,n):
     '''
-    Given a list of x values, compute the expected value (rejecting burn-in).
+    Given a list of x values, compute the expected value
+      and standardised standard deviation (rejecting burn-in).
     '''
-    values_to_use = x[math.ceil(len(x)/10):]
+    length = len(x)
+    values_to_use = x[math.ceil(length/10):]
     stand_sd = m**0.5/(n-1)**0.5
     return np.mean(values_to_use), stand_sd
 
-print("Expected x =", mean_and_sd(an_HMC_alg(100000,L,eps)[0])[0],\
-      "Standardised standard deviation of x=", mean_and_sd(an_HMC_alg(100000,L,eps)[0])[1],\
-       "Expected KE = ",mean_and_sd(an_HMC_alg(100000, L, eps)[1])[0], \
-       "Standardised standard deviation of KE = ", mean_and_sd(an_HMC_alg(100000, L, eps)[1])[1],\
-        "Expected PE =", mean_and_sd(an_HMC_alg(100000,L,eps)[2])[0],\
-        "Standardised standard deviation of PE = ", mean_and_sd(an_HMC_alg(100000, L, eps)[2][1]),\
-        "Expected exp(-delH)= " ,mean_and_sd(an_HMC_alg(100000,L,eps)[3])[0],\
-        "Standardised standard deviation of exp(-delH) = ", mean_and_sd(an_HMC_alg(100000,L,eps)[3])[1],\
-        "Expected error =", mean_and_sd(an_HMC_alg(100000, L, eps)[4])[0],\
-        "Standardised standard deviation of error=", mean_and_sd(an_HMC_alg(100000,L,eps)[4])[1],\
+print("Expected x =", mean_and_sd(an_HMC_alg(100000,L,eps)[0],1,100000)[0],\
+      "Standardised standard deviation of x=", mean_and_sd(an_HMC_alg(100000,L,eps)[0],1,100000)[1],\
+       "Expected KE = ",mean_and_sd(an_HMC_alg(100000, L, eps)[1],1,100000)[0], \
+       "Standardised standard deviation of KE = ", mean_and_sd(an_HMC_alg(100000, L, eps)[1],1,100000)[1],\
+        "Expected PE =", mean_and_sd(an_HMC_alg(100000,L,eps)[2],1,100000)[0],\
+        "Standardised standard deviation of PE = ", mean_and_sd(an_HMC_alg(100000, L, eps)[2],1,100000)[1],\
+        "Expected exp(-delH)= " ,mean_and_sd(an_HMC_alg(100000,L,eps)[3],1,100000)[0],\
+        "Standardised standard deviation of exp(-delH) = ", mean_and_sd(an_HMC_alg(100000,L,eps)[3],1,100000)[1],\
+        "Expected error =", mean_and_sd(an_HMC_alg(100000, L, eps)[4],1,100000)[0],\
+        "Standardised standard deviation of error=", mean_and_sd(an_HMC_alg(100000,L,eps)[4],1,100000)[1],\
         "Acceptance ratio =" ,an_HMC_alg(100000, L, eps)[5])
 
 
