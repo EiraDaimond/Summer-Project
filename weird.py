@@ -1,13 +1,33 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import math
 
 # Define the variables to be used
-L = int(1e8)
+L = 10
 eps = 1e-8
 k = 1
 lam = 1
 n = 10
+tol = 1e-6
+
+# Define the anharmonic potential term
+def an_V(x):
+    return 0.5*k*x**2 + 0.25*lam*x**4
+
+# Define the metric tensor (second derivative of the potential term)
+def G(x):
+    return k + 3*lam*x**2
+    
+# Define M (including delta).... to be used to avoid division by 0 errors
+def M(x, d):
+    return np.sqrt(abs(G(x)**2+d**2))
+
+# Define the kinetic energy term (include correction term)
+def K(p, x,d):
+    return 0.5*p*M(x,d)*p + 0.5*np.log(np.abs(M(x,d)))
+
+# Define the Hamiltonian
+def H(x, p,d):
+    return an_V(x) + K(p, x, d) 
 
 def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     '''
@@ -15,27 +35,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     Mass is non-constant and is instead represented by the metric tensor which I 
     shall denote G. In the 1D case, this is just a scalar. 
     ''' 
-
-    # Define the anharmonic potential term
-    def an_V(x):
-        return 0.5*k*x**2 + 0.25*lam*x**4
-
-    # Define the metric tensor (second derivative of the potential term)
-    def G(x):
-        return k + 3*lam*x**2
-    
-    # Define M (including delta).... to be used to avoid division by 0 errors
-    def M(x, d):
-        return np.sqrt(abs(G(x)**2+d**2))
-
-    # Define the kinetic energy term (include correction term)
-    def K(p, x,d):
-        return 0.5*p*M(x,d)*p + 0.5*np.log(np.abs(M(x,d)))
-
-    # Define the Hamiltonian
-    def H(x, p):
-        return an_V(x) + K(p, x,d) 
-
+ 
     # Run the RMHMC algorithm
     '''
     Carry out the RMHMC algorithm to generate x values. 
@@ -55,7 +55,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         x_stars = []
         p_stars = []
         # Draw the momentum from a Normal distribution
-        p = np.random.normal(0, (np.abs(G(x[t])))**0.5)
+        p = np.random.normal(0, M(x[t], d))
         # Provide an initial guess value for p, initialise p_star
         p_guess = p 
         p_star = 0
@@ -128,17 +128,17 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             #("On iter", l, "with p_star =", p_star, "p_guess =", p_guess)
             # PROBLEM IS HERE WHERE P VALUES AREN'T CONVERGING
             while True:
-                #("Count=",count)
+                print("Count=",count)
                 count = count +1
-                #("Middle step iter[",l,"] p_star is :", p_star)
-                #("Using x_star:", x_star)
+                print("Middle step iter[",l,"] p_star is :", p_star)
+                print("Using x_star:", x_star)
                 p_star = p_current - eps\
                                         *(k*x_star + lam*x_star**3\
                                              + 0.5*p_guess**2*(-6*lam*x_star)\
                                              + 0.5*abs(-6*lam*x_star)/M(x_star,d))
-                #("Calculated p_star =", p_star)
-                #("p_guess is", p_guess)
-                #("Difference in ps", abs(p_star - p_guess))
+                print("Calculated p_star =", p_star)
+                print("p_guess is", p_guess)
+                print("Difference in ps", abs(p_star - p_guess))
                 if p_star > 1e14:
                     print("BROKE p_star too big")
                     break
@@ -148,11 +148,11 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                         break
                     else:
                         if abs(p_star - p_guess) < tol:
-                            #print("STOPPING WHILE LOOP for p")
+                            print("STOPPING WHILE LOOP for p")
                             break 
                         else:
                             p_guess = p_star
-                #()
+                print()
             #("Moving on from middle step iter [",l,"] with p_star", p_star)
             p_stars.append(p_star)
             #()
@@ -216,7 +216,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                         p_guess = p_star
             #()
         # Compute the acceptance ratio
-        r = np.exp(-H(x_star, p_star) + H(x[t], p))
+        r = np.exp(-H(x_star, p_star,d) + H(x[t], p,d))
         # Draw W from a Uniform distribution
         W = np.random.uniform(0, 1)            
         # Carry out the Metropolis test
@@ -235,7 +235,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         PE_vals.append(PE)
         #print("PE_vals looks like:", PE_vals)
         # Compute the exp(-delH)
-        exp_minus_del_H_ = np.exp(H(x[-1],p_star) - H(x[t], p))
+        exp_minus_del_H_ = np.exp(H(x[-1],p_star,d) - H(x[t], p,d))
         exps_delH.append(exp_minus_del_H_)
         #print("exps_minus_delH looks like:", exps_delH)
         # Check reversibility
@@ -262,26 +262,19 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     return x, KE_vals, PE_vals, exps_delH, errors, acc_rat
     
 # Find the expected value of x and corresponding standardised standard deviation
-def mean_and_sd(RMHMC, n, d):
+def mean_and_sd(list, n, d):
     '''
     Given a list of values, compute the expected value (with burn-in removed), 
     and corresponding standardised standar deviation.
     '''
-    # Initialise output
-    expected_values = []
-    st_ds = []
-    for j in range(6):
-        values_to_use = RMHMC[j][math.ceil(len( RMHMC[j])/10):]
-        expected_values.append(np.mean(values_to_use))
-        # Initialise the sd_list
-        sd_list = [0]*(len(values_to_use))
-        for i in range(len(values_to_use)+1):
-            sd_list[i] = RMHMC.M(values_to_use[i], d)
-        stand_sd = np.sqrt((np.mean(sd_list))/(n-1))
-        st_ds.append(stand_sd)
-    return expected_values, st_ds    
+    length = len(list)
+    values_to_use = list[math.ceil(length/10):]
+    # Initialise the sd_list
+    sd_list = [0]*(len(values_to_use))
+    for i in range(len(values_to_use)):
+        sd_list[i] = M(values_to_use[i], d)
+    return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
 
-print(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)
 print("Expected x =", mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[0][0] ,\
       "Standardised standard deviation of x=",mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[1][0] ,\
        "Expected KE = ",mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[0][1], \
