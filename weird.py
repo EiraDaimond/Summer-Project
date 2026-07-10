@@ -52,19 +52,27 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         while True:
             print("Count =",count)
             count = count +1 
-            print("Mass metric is:",M(x[t],d))
             p_star = p - 0.5*eps*\
                  (k*x[t] + lam*x[t]**3 \
                      + 0.5*p_guess**2*(-6*lam*x[t]) \
                 + 0.5*abs(-6*lam*x[t])\
                      /M(x[t],d))
-            print("1st step p_star is:",p_star)
-            print("1st step p_guess is:",p_guess)
-            print("Difference in ps:", abs(p_guess - p_star))
-            if abs(p_star - p_guess) < tol: 
+            if p_star > 1e14:
+                print("BROKE p_star too big")
                 break
             else:
-                p_guess = p_star  
+                if p_star < -1e14:
+                    print("BROKE p_star too big -ve")
+                    break
+                else:
+                    print("1st step p_star is:",p_star)
+                    print("1st step p_guess is:",p_guess)
+                    print("Difference in ps:", abs(p_guess - p_star))
+                    if abs(p_star - p_guess) < tol: 
+                        print("STOPPING loop for p")
+                        break
+                    else:
+                        p_guess = p_star  
             print()
         print("Moving on from 1st step with p_star", p_star)  
         p_stars.append(p_star)
@@ -78,9 +86,19 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             print("1st step x_star is :", x_star)
             x_star = x[t] + 0.5*eps\
                             *(p_star*M(x[t],d)+p_star*M(x_guess,d))
-            if abs(x_star - x_guess) < tol:
+            if x_star > 1e14:
+                print("BROKE x_star too big")
                 break
-            x_guess = x_star
+            else:
+                if x_star < -1e14:
+                    print("BROKE x_star too big -ve")
+                    break
+                else:
+                    if abs(x_star - x_guess) < tol:
+                        print("STOPPING while loop for x_star")
+                        break
+                    else:
+                        x_guess = x_star
             print()
         print("Moving on from 1st step with x_star", x_star)
         x_stars.append(x_star)
@@ -89,39 +107,44 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         print("STARTING MIDDLE STEPS")
         print()
         # Compute (x*, - p*) using L leapfrog steps of size eps
-        for l in range(1, L):
+        for l in range(1, 4):
             p_current = p_star
             p_guess = p_star
             p_star = 0
             count = 1
+            print("On iter", l, "with p_star =", p_star, "p_guess =", p_guess)
+            # PROBLEM IS HERE WHERE P VALUES AREN'T CONVERGING
             while True:
                 print("Count=",count)
                 count = count +1
                 print("Middle step iter[",l,"] p_star is :", p_star)
-                print("Mass metric is:",M(x_star,d))
-                if M(x_star,d) > 1e14:
-                    print("BROKE M BIG")
-                    break
-                if M(x_star,d) < -1e14:
-                    print("BROKE M -VE TOO BIG")
-                    break
+                print("Using x_star:", x_star)
                 p_star = p_current - eps\
                                         *(k*x_star + lam*x_star**3\
                                              + 0.5*p_guess**2*(-6*lam*x_star)\
                                              + 0.5*abs(-6*lam*x_star)/M(x_star,d))
                 print("Calculated p_star =", p_star)
-                if p_star > 1e14:
-                    break
-                if p_star < -1e14:
-                    break
+                print("p_guess is", p_guess)
                 print("Difference in ps", abs(p_star - p_guess))
-                if abs(p_star - p_guess) < tol:
-                    print("STOPPING WHILE LOOP for p")
-                    break 
-                p_guess = p_star
+                if p_star > 1e14:
+                    print("BROKE p_star too big")
+                    break
+                else:
+                    if p_star < -1e14:
+                        print("BROKE p_star too big -ve")
+                        break
+                    else:
+                        if abs(p_star - p_guess) < tol:
+                            print("STOPPING WHILE LOOP for p")
+                            break 
+                        else:
+                            p_guess = p_star
                 print()
             print("Moving on from middle step iter [",l,"] with p_star", p_star)
             p_stars.append(p_star)
+            print()
+            print("STARTING x convergence")
+            print()
             # x convergence
             x_current = x_star
             x_guess = x_star
@@ -129,17 +152,24 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             count = 1
             while True:
                 print("Count=",count)
-                if M(x_guess,d) > 1e14:
-                    break
-                if M(x_guess,d) < -1e14:
-                    break
                 count = count+1
                 print("Middle step iter[",l,"] x_star is :", x_star)
+                print("Using p_star", p_star)
                 x_star = x_current + 0.5*eps\
                             *(p_star*M(x_current,d)+p_star*M(x_guess,d))
-                if abs(x_star - x_guess) < tol:
+                if x_star > 1e14:
+                    print("BROKE x_star too big")
                     break
-                x_guess = x_star
+                else:
+                    if x_star < -1e14:
+                        print("BROKE x_star too big -ve")
+                        break
+                    else:
+                        if abs(x_star - x_guess) < tol:
+                            print("STOPPING while loop for x_star")
+                            break
+                        else:
+                            x_guess = x_star
                 print()
             print("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
@@ -150,17 +180,27 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         p_current = p_star
         p_guess = p_star
         count = 1
-        print("Mass metric is:",M(x_star,d))
         while True:
             print("Count=",count)
             count = count+1
-            print("p_star is :", p_star)
             p_star = p_guess - 0.5*eps\
                                     *(k*x[t] + lam*x[t]**3 + 0.5*p_guess**2*(-6*lam*x[t])\
                                         + 0.5*abs(-6*lam*x[t])/M(x[t],d))
-            if abs(p_star - p_guess) < tol:
+            print("p_star is :", p_star)
+            print("p_guess is", p_guess)
+            print("Difference in ps:", abs(p_star - p_guess))
+            if p_star > 1e14:
+                print("BROKE p_star too big")
                 break
-            p_guess = p_star
+            else:
+                if p_star < -1e14:
+                    print("BROKE p_star too big -ve")
+                    break
+                else:
+                    if abs(p_star - p_guess) < tol:
+                        break
+                    else:
+                        p_guess = p_star
             print()
         # Compute the acceptance ratio
         r = np.exp(-H(x_star, p_star) + H(x[t], p))
