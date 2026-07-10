@@ -37,7 +37,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     # Initialise the x values
     x = [0.1] # COMMENT: Wanted to use 0 but that doesn't work for the fixed point iteration
     # Start the loop to generate x values
-    for t in range(2):
+    for t in range(n+1):
         # Initialise the x_star and p_star lists
         x_stars = []
         p_stars = []
@@ -84,6 +84,10 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             print()
         print("Moving on from 1st step with x_star", x_star)
         x_stars.append(x_star)
+        print("CODE WORKS UP TO HERE")
+        print()
+        print("STARTING MIDDLE STEPS")
+        print()
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L):
             p_current = p_star
@@ -91,24 +95,29 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             p_star = 0
             count = 1
             while True:
-                count = count +1
                 print("Count=",count)
+                count = count +1
                 print("Middle step iter[",l,"] p_star is :", p_star)
                 print("Mass metric is:",M(x_star,d))
-                print(M(0,d))
-                if M(x_star,d) < 1e-14:
+                if M(x_star,d) > 1e14:
+                    print("BROKE M BIG")
+                    break
+                if M(x_star,d) < -1e14:
+                    print("BROKE M -VE TOO BIG")
                     break
                 p_star = p_current - eps\
                                         *(k*x_star + lam*x_star**3\
                                              + 0.5*p_guess**2*(-6*lam*x_star)\
                                              + 0.5*abs(-6*lam*x_star)/M(x_star,d))
+                print("Calculated p_star =", p_star)
                 if p_star > 1e14:
                     break
                 if p_star < -1e14:
                     break
                 print("Difference in ps", abs(p_star - p_guess))
                 if abs(p_star - p_guess) < tol:
-                    break
+                    print("STOPPING WHILE LOOP for p")
+                    break 
                 p_guess = p_star
                 print()
             print("Moving on from middle step iter [",l,"] with p_star", p_star)
@@ -120,9 +129,6 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             count = 1
             while True:
                 print("Count=",count)
-                print(M(0,d))
-                print(M(x_current,d))
-                print(M(x_guess,d))
                 if M(x_guess,d) > 1e14:
                     break
                 if M(x_guess,d) < -1e14:
@@ -137,22 +143,25 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                 print()
             print("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
-        # # Compute the final step of the leapfrog method
-        # p_current = p_star
-        # p_guess = p_star
-        # count = 1
-        # print("Mass metric is:",M(x_star,d))
-        # while True:
-        #     print("Count=",count)
-        #     count = count+1
-        #     print("p_star is :", p_star)
-        #     p_star = p_guess - 0.5*eps\
-        #                             *(k*x[t] + lam*x[t]**3 + 0.5*p_guess**2*(-6*lam*x[t])\
-        #                                 + 0.5*abs(-6*lam*x[t])/M(x[t],d))
-        #     if abs(p_star - p_guess) < tol:
-        #         break
-        #     p_guess = p_star
-        #     print()
+        print()
+        print("STARTING FINAL STEPS")
+        print()
+        # Compute the final step of the leapfrog method
+        p_current = p_star
+        p_guess = p_star
+        count = 1
+        print("Mass metric is:",M(x_star,d))
+        while True:
+            print("Count=",count)
+            count = count+1
+            print("p_star is :", p_star)
+            p_star = p_guess - 0.5*eps\
+                                    *(k*x[t] + lam*x[t]**3 + 0.5*p_guess**2*(-6*lam*x[t])\
+                                        + 0.5*abs(-6*lam*x[t])/M(x[t],d))
+            if abs(p_star - p_guess) < tol:
+                break
+            p_guess = p_star
+            print()
         # Compute the acceptance ratio
         r = np.exp(-H(x_star, p_star) + H(x[t], p))
         # Draw W from a Uniform distribution
@@ -171,4 +180,4 @@ def exp_val(x):
     '''
     return np.mean(x)
 
-print(RMHMC(10,0.1,1,1,1e-6,10,1e-6))
+print(RMHMC(100,0.1,1,1,1e-6,10,1e-6))
