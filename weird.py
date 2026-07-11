@@ -50,7 +50,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     # Initialise the x, KE, PE, exps_delH, errors, accepted values list
     x = [0.1] # COMMENT: Wanted to use 0 but that doesn't work for the fixed point iteration
     KE_vals =[]
-    PE_vals= []
+    PE_vals= [0]
     exps_delH = []
     errors = []
     accepted = []
@@ -271,6 +271,12 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             errors.append(error)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
+    # Plot the anharmonic potential
+    burn_in = math.ceil(len(x)/10)
+    plt.plot(x[burn_in:],PE_vals[burn_in:])
+    plt.xlabel("x")
+    plt.ylabel("V(x)")
+    plt.show()
     return x, KE_vals, PE_vals, exps_delH, errors, acc_rat
     
 # Find the expected value of x and corresponding standardised standard deviation
@@ -306,4 +312,3 @@ COMMENTS:
 - Tolerance I have chosen as 1e-6... I feel like this is still pretty high but maybe I can adapt it later.
 - For some reason a very high acceptance ratio (+90%) 
 '''
-
