@@ -8,18 +8,19 @@ k = 1
 lam = 1
 n = 10
 tol = 1e-6
+d = 1e-6
 
 # Define the anharmonic potential term
-def an_V(x):
+def an_V(x,k,lam):
     return 0.5*k*x**2 + 0.25*lam*x**4
 
 # Define the metric tensor (second derivative of the potential term)
-def G(x):
+def G(x,k,lam):
     return k + 3*lam*x**2
     
 # Define M (including delta).... to be used to avoid division by 0 errors
 def M(x, d):
-    return np.sqrt(abs(G(x)**2+d**2))
+    return np.sqrt(abs(G(x,k,lam)**2+d**2))
 
 # Define the kinetic energy term (include correction term)
 def K(p, x,d):
@@ -27,7 +28,7 @@ def K(p, x,d):
 
 # Define the Hamiltonian
 def H(x, p,d):
-    return an_V(x) + K(p, x, d) 
+    return an_V(x,k,lam) + K(p, x, d) 
 
 def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     '''
@@ -231,7 +232,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         KE_vals.append(KE)
         #print("KE_vals looks like:", KE_vals)
         # Compute the PE and append to list
-        PE = an_V(x[-1])
+        PE = an_V(x[-1],k,lam)
         PE_vals.append(PE)
         #print("PE_vals looks like:", PE_vals)
         # Compute the exp(-delH)
@@ -275,16 +276,16 @@ def mean_and_sd(list, n, d):
         sd_list[i] = M(values_to_use[i], d)
     return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
 
-print("Expected x =", mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[0][0] ,\
-      "Standardised standard deviation of x=",mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[1][0] ,\
-       "Expected KE = ",mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[0][1], \
-       "Standardised standard deviation of KE = ",mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[1][1],\
-        "Expected PE =", mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[0][2],\
-        "Standardised standard deviation of PE = ", mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[1][2],\
-        "Expected exp(-delH)= " ,mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[0][3],\
-        "Standardised standard deviation of exp(-delH) = ", mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[1][3],\
-        "Expected error =", mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[0][4],\
-        "Standardised standard deviation of error=", mean_and_sd(RMHMC(L,eps,1,1,1e-6,n,1e-6),n, 1e-6)[1][4],\
+print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],\
+      "Standardised standard deviation of x=",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[1] ,\
+       "Expected KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[0], \
+       "Standardised standard deviation of KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[1],\
+       "Expected PE =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[0],\
+       "Standardised standard deviation of PE = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[1],\
+       "Expected exp(-delH)= " ,mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[3]),n, 1e-6)[0],\
+       "Standardised standard deviation of exp(-delH) = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[3]),n, 1e-6)[1],\
+        "Expected error =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[0],\
+        "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
 '''
 COMMENTS:
