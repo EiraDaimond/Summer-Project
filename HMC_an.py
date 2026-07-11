@@ -9,13 +9,17 @@ eps = 0.1
 k = 1
 lam = 1
 
-# Define the anharmonic potential
-def an_V(x):
-    return 0.5*k*x**2 + 0.25*lam*x**4
+# Define the anharmonic potential term
+def an_V(x,k,lam):
+    if k >0:
+        an_V = 0.25*lam*x**4 + 0.5*lam*k*x**2
+    else:
+        an_V = 0.25*lam*x**4 - 0.5*lam*k*x**2
+    return an_V
 
 # Define the anharmonic Hamiltonian
 def an_H(x, p,m):
-    return an_V(x) + 0.5*p**2/m
+    return an_V(x,k,lam) + 0.5*p**2/m
   
 # def test_normal_p(n,m):
 #     '''

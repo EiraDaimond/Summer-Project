@@ -1,8 +1,9 @@
 import numpy as np
 import math
+import matplotlib.pyplot
 
 # Define the variables to be used
-L = 10
+L = 10000
 eps = 1e-8
 k = 1
 lam = 1
@@ -12,7 +13,11 @@ d = 1e-6
 
 # Define the anharmonic potential term
 def an_V(x,k,lam):
-    return 0.5*k*x**2 + 0.25*lam*x**4
+    if k >0:
+        an_V = 0.25*lam*x**4 + 0.5*lam*k*x**2
+    else:
+        an_V = 0.25*lam*x**4 - 0.5*lam*k*x**2
+    return an_V
 
 # Define the metric tensor (second derivative of the potential term)
 def G(x,k,lam):
@@ -287,8 +292,16 @@ print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],
         "Expected error =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[0],\
         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
+
 '''
 COMMENTS:
 - Want Leps = 1 (will later change), at mo this is resulting in many L iterations (1e8,1e-8), code takes a long time to run.
-- Tolerance I have chosen as 1e-6... I feel like this is still pretty high but maybe I can adapt it later. 
+- Tolerance I have chosen as 1e-6... I feel like this is still pretty high but maybe I can adapt it later.
+- For some reason a very high acceptance ratio (+90%) 
 '''
+
+'''
+Plot x against an_V(x)
+'''
+
+
