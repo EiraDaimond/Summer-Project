@@ -125,13 +125,13 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         #()
         print("STARTING MIDDLE STEPS")
         #()
-        plt.figure()
+        # plt.figure()
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L+1):
-            # Plot the dynamics
-            plt.plot(x_stars,an_V(x_stars[l-1],k,lam))
-            plt.xlabel("x")
-            plt.ylabel("V(x)")
+            # # Plot the dynamics
+            # plt.plot(x_stars,an_V(x_stars[l-1],k,lam))
+            # plt.xlabel("x")
+            # plt.ylabel("V(x)")
             p_current = p_star
             p_guess = p_star
             p_star = 0
@@ -273,10 +273,10 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     acc_rat = (len(accepted)/len(x))*100
     # Plot the anharmonic potential
     burn_in = math.ceil(len(x)/10)
-    plt.plot(x[burn_in:],PE_vals[burn_in:])
-    plt.xlabel("x")
-    plt.ylabel("V(x)")
-    plt.show()
+    # plt.plot(x[burn_in:],PE_vals[burn_in:])
+    # plt.xlabel("x")
+    # plt.ylabel("V(x)")
+    # plt.show()
     return x, KE_vals, PE_vals, exps_delH, errors, acc_rat
     
 # Find the expected value of x and corresponding standardised standard deviation
