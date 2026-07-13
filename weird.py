@@ -123,18 +123,20 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             #()
         #("Moving on from 1st step with x_star", x_star)
         x_stars.append(x_star)
-        V_x.append(an_V(x_star))
+        V_x.append(an_V(x_star,k,lam))
         #("CODE WORKS UP TO HERE")
         #()
         print("STARTING MIDDLE STEPS")
         #()
-        #plt.figure()
+        # Setting up the plot for the dynamics
+        plt.figure()
+        plt.xlabel("x")
+        plt.ylabel("V(x)")
+        plt.plot(x_stars,V_x)
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L+1):
-            # # Plot the dynamics
-            # plt.plot(x_stars,an_V(x_stars[l-1],k,lam))
-            # plt.xlabel("x")
-            # plt.ylabel("V(x)")
+            # Plot the dynamics
+            plt.plot(x_stars,V_x)
             p_current = p_star
             p_guess = p_star
             p_star = 0
@@ -200,7 +202,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                 #()
             #("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
-            V_x.append(an_V(x_star))
+            V_x.append(an_V(x_star,k,lam))
         plt.show()
         #()
         print("STARTING FINAL STEPS")
@@ -277,7 +279,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     acc_rat = (len(accepted)/len(x))*100
     # Plot the anharmonic potential
     burn_in = math.ceil(len(x)/10)
-    fig,ax = plt.subplots()
+    ax = plt.subplots()
     ax.plot(x[burn_in:],PE_vals[burn_in:])
     ax.spines['left'].set_position('center').label("V(x)")
     ax.spines['bottom'].label("x")
