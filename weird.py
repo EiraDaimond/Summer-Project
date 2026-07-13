@@ -125,13 +125,13 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         #()
         print("STARTING MIDDLE STEPS")
         #()
-        # plt.figure()
+        plt.figure()
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L+1):
-            # # Plot the dynamics
-            # plt.plot(x_stars,an_V(x_stars[l-1],k,lam))
-            # plt.xlabel("x")
-            # plt.ylabel("V(x)")
+            # Plot the dynamics
+            plt.plot(x_stars,an_V(x_stars[l-1],k,lam))
+            plt.xlabel("x")
+            plt.ylabel("V(x)")
             p_current = p_star
             p_guess = p_star
             p_star = 0
@@ -293,7 +293,7 @@ def mean_and_sd(list, n, d):
         sd_list[i] = M(values_to_use[i], d)
     return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
 
-RMHMC(L,eps,1,1,1e-6,n,1e-6)
+print(RMHMC(L,eps, k,lam,tol,n,d)[0])
 # print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],\
 #       "Standardised standard deviation of x=",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[1] ,\
 #        "Expected KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[0], \
