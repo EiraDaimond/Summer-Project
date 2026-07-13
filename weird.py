@@ -54,6 +54,10 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     exps_delH = []
     errors = []
     accepted = []
+    # Setting up the plot for the dynamics
+    plt.figure()
+    plt.xlabel("x")
+    plt.ylabel("V(x)")
     # Start the loop to generate x values
     for t in range(n+1):
         print("On iteration:", t)
@@ -128,11 +132,6 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         #()
         print("STARTING MIDDLE STEPS")
         #()
-        # Setting up the plot for the dynamics
-        plt.figure()
-        plt.xlabel("x")
-        plt.ylabel("V(x)")
-        plt.plot(x_stars,V_x)
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L+1):
             # Plot the dynamics
