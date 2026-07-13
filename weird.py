@@ -48,7 +48,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     We will use the Generalised Leapfrog Method with the fixed point iteration.
     '''
     # Initialise the x, KE, PE, exps_delH, errors, accepted values list
-    x = [0.1] # COMMENT: Wanted to use 0 but that doesn't work for the fixed point iteration
+    x = [0] 
     KE_vals =[]
     PE_vals= [0]
     exps_delH = []
@@ -60,6 +60,8 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         # Initialise the x_star and p_star lists
         x_stars = []
         p_stars = []
+        # Initialise the V(x) lists
+        V_x = []
         # Draw the momentum from a Normal distribution
         p = np.random.normal(0, M(x[t], d))
         # Provide an initial guess value for p, initialise p_star
@@ -121,17 +123,18 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             #()
         #("Moving on from 1st step with x_star", x_star)
         x_stars.append(x_star)
+        V_x.append(an_V(x_star))
         #("CODE WORKS UP TO HERE")
         #()
         print("STARTING MIDDLE STEPS")
         #()
-        plt.figure()
+        #plt.figure()
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L+1):
-            # Plot the dynamics
-            plt.plot(x_stars,an_V(x_stars[l-1],k,lam))
-            plt.xlabel("x")
-            plt.ylabel("V(x)")
+            # # Plot the dynamics
+            # plt.plot(x_stars,an_V(x_stars[l-1],k,lam))
+            # plt.xlabel("x")
+            # plt.ylabel("V(x)")
             p_current = p_star
             p_guess = p_star
             p_star = 0
@@ -197,6 +200,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                 #()
             #("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
+            V_x.append(an_V(x_star))
         plt.show()
         #()
         print("STARTING FINAL STEPS")
@@ -273,9 +277,10 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     acc_rat = (len(accepted)/len(x))*100
     # Plot the anharmonic potential
     burn_in = math.ceil(len(x)/10)
-    plt.plot(x[burn_in:],PE_vals[burn_in:])
-    plt.xlabel("x")
-    plt.ylabel("V(x)")
+    fig,ax = plt.subplots()
+    ax.plot(x[burn_in:],PE_vals[burn_in:])
+    ax.spines['left'].set_position('center').label("V(x)")
+    ax.spines['bottom'].label("x")
     plt.show()
     return x, KE_vals, PE_vals, exps_delH, errors, acc_rat
     
@@ -311,4 +316,6 @@ COMMENTS:
 - Want Leps = 1 (will later change), at mo this is resulting in many L iterations (1e8,1e-8), code takes a long time to run.
 - Tolerance I have chosen as 1e-6... I feel like this is still pretty high but maybe I can adapt it later.
 - For some reason a very high acceptance ratio (+90%) 
+- PROBLEM: Algorithm is bad; if given initial x as positive, then all xs positive, if started negative then all xs negative; 
+only 0 allows x to take both positive and negative values.... this seems bad. 
 '''
