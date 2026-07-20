@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+import matplotlib.animation as ani
 
 # Define the variables to be used
 L = 10000
@@ -35,6 +36,30 @@ def K(p, x,d):
 def H(x, p,d):
     return an_V(x,k,lam) + K(p, x, d) 
 
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(-1.1,1.1)
+fig.xlabel("x")
+ax.set_ylim(-1.1,1.1)
+fig.ylabel("V(x)")
+ax.set_title("Potential")
+trace = ax.plot([],[])
+current_plot = ax.plot([],[])
+
+# Functions for the dynamics
+def init():
+    trace.set_data([],[])
+    current_plot.set_data([],[])
+    return trace, current_plot
+def update(x_data, y_data, frame):
+    trace_x = x_data[:frame+1]
+    trace_y = y_data[:frame+1]
+    trace.set_data(trace_x, trace_y)
+    current_x = [x_data[frame]]
+    current_y = [y_data[frame]]
+    current_plot.set_data(current_x, current_y)
+    return trace, current_plot
+
 def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     '''
     Rewriting the anharmonic HMC class but for RMHMC in one dimension. 
@@ -54,10 +79,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     exps_delH = []
     errors = []
     accepted = []
-    # Setting up the plot for the dynamics
-    plt.figure()
-    plt.xlabel("x")
-    plt.ylabel("V(x)")
+  
     # Start the loop to generate x values
     for t in range(n+1):
         print("On iteration:", t)
@@ -134,8 +156,6 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         #()
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L+1):
-            # Plot the dynamics
-            plt.plot(x_stars,V_x)
             p_current = p_star
             p_guess = p_star
             p_star = 0
@@ -202,7 +222,8 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             #("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
             V_x.append(an_V(x_star,k,lam))
-        plt.show()
+            animate = ani.FuncAnimation(fig, update(x_stars, V_x, L), frames=L+1, init_func=init, blit=True, interval=50, repeat=False)
+            plt.show()
         #()
         print("STARTING FINAL STEPS")
         #()
@@ -283,7 +304,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     ax.spines['left'].set_position('center').label("V(x)")
     ax.spines['bottom'].label("x")
     plt.show()
-    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat
+    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, animate
     
 # Find the expected value of x and corresponding standardised standard deviation
 def mean_and_sd(list, n, d):
@@ -311,6 +332,7 @@ print(RMHMC(L,eps, k,lam,tol,n,d)[0])
 #         "Expected error =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[0],\
 #         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
 #         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
+
 
 '''
 COMMENTS:
