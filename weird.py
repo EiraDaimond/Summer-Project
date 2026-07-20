@@ -39,12 +39,12 @@ def H(x, p,d):
 # Setting up the plot for the dynamics
 fig, ax = plt.subplots(figsize=(10,10))
 ax.set_xlim(-1.1,1.1)
-fig.xlabel("x")
+fig.supxlabel("x")
 ax.set_ylim(-1.1,1.1)
-fig.ylabel("V(x)")
+fig.supylabel("V(x)")
 ax.set_title("Potential")
-trace = ax.plot([],[])
-current_plot = ax.plot([],[])
+trace, = ax.plot([],[])
+current_plot, = ax.plot([],[])
 
 # Functions for the dynamics
 def init():
@@ -222,7 +222,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             #("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
             V_x.append(an_V(x_star,k,lam))
-            animate = ani.FuncAnimation(fig, update(x_stars, V_x, L), frames=L+1, init_func=init, blit=True, interval=50, repeat=False)
+            animate = ani.FuncAnimation(fig, update(x_stars, V_x, L), frames=L, init_func=init, blit=True, interval=50, repeat=False)
             plt.show()
         #()
         print("STARTING FINAL STEPS")
@@ -320,7 +320,7 @@ def mean_and_sd(list, n, d):
         sd_list[i] = M(values_to_use[i], d)
     return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
 
-print(RMHMC(L,eps, k,lam,tol,n,d)[0])
+print(RMHMC(L,eps, k,lam,tol,n,d)[0],RMHMC(L,eps, k,lam,tol,n,d)[6])
 # print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],\
 #       "Standardised standard deviation of x=",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[1] ,\
 #        "Expected KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[0], \
