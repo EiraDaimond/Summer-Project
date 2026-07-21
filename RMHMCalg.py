@@ -1,7 +1,7 @@
 import numpy as np
 import math
-import matplotlib.pyplot as plt
-import matplotlib.animation as ani
+# import matplotlib.pyplot as plt
+# import matplotlib.animation as ani
 
 # Define the variables to be used
 L = 10000
@@ -36,15 +36,29 @@ def K(p, x,d):
 def H(x, p,d):
     return an_V(x,k,lam) + K(p, x, d) 
 
-# Setting up the plot for the dynamics
-fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(-1.1,1.1)
-fig.supxlabel("x")
-ax.set_ylim(-1.1,1.1)
-fig.supylabel("V(x)")
-ax.set_title("Potential")
-trace, = ax.plot([],[])
-current_plot, = ax.plot([],[]) # This prints (blank)
+# # Setting up the plot for the dynamics
+# fig, ax = plt.subplots(figsize=(10,10))
+# ax.set_xlim(-1.1,1.1)
+# fig.supxlabel("x")
+# ax.set_ylim(-1.1,1.1)
+# fig.supylabel("V(x)")
+# ax.set_title("Potential")
+# trace, = ax.plot([],[])
+# current_plot, = ax.plot([],[]) # This prints (blank)
+
+# # Functions for the dynamics
+# def init():
+#     trace.set_data([],[])
+#     current_plot.set_data([],[])
+#     return trace, current_plot
+# def update(x_data, y_data, frame):
+#     trace_x = x_data[:frame+1]
+#     trace_y = y_data[:frame+1]
+#     trace.set_data(trace_x, trace_y)
+#     current_x = [x_data[frame]]
+#     current_y = [y_data[frame]]
+#     current_plot.set_data(current_x, current_y)
+#     return trace, current_plot
 
 def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     '''
@@ -65,6 +79,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     exps_delH = []
     errors = []
     accepted = []
+  
     # Start the loop to generate x values
     for t in range(n+1):
         print("On iteration:", t)
@@ -206,7 +221,9 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                 #()
             #("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
-            V_x.append(an_V(x_star,k,lam))  
+            V_x.append(an_V(x_star,k,lam))
+            # animate = ani.FuncAnimation(fig, update(x_stars, V_x, l), frames=L, init_func=init, blit=True, interval=50, repeat=False)
+            # plt.show()
         #()
         print("STARTING FINAL STEPS")
         #()
@@ -215,7 +232,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         p_guess = p_star
         count = 1
         while True:
-            print("Count=",count)
+            #("Count=",count)
             count = count+1
             p_star = p_guess - 0.5*eps\
                                     *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
@@ -287,7 +304,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     # ax.spines['left'].set_position('center').label("V(x)")
     # ax.spines['bottom'].label("x")
     # plt.show()
-    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, x_stars, V_x # x_stars and V_x will be from last loop (nth)
+    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, #animate
     
 # Find the expected value of x and corresponding standardised standard deviation
 def mean_and_sd(list, n, d):
@@ -303,43 +320,15 @@ def mean_and_sd(list, n, d):
         sd_list[i] = M(values_to_use[i], d)
     return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
 
-#print(RMHMC(L,eps, k,lam,tol,n,d)[0])
-# print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],\
-#       "Standardised standard deviation of x=",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[1] ,\
-#        "Expected KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[0], \
-#        "Standardised standard deviation of KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[1],\
-#        "Expected PE =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[0],\
-#        "Standardised standard deviation of PE = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[1],\
-#        "Expected exp(-delH)= " ,mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[3]),n, 1e-6)[0],\
-#        "Standardised standard deviation of exp(-delH) = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[3]),n, 1e-6)[1],\
-#         "Expected error =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[0],\
-#         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
-#         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
-
-x_stars, V_x = RMHMC(L,eps,k,lam,tol,n,d)[6],RMHMC(L,eps,k,lam,tol,n,d)[7]
-
-# Functions for the dynamics
-def init():
-    trace.set_data([],[])
-    current_plot.set_data([],[])
-    return trace, current_plot
-def update(frame):
-    trace_x = x_stars[:frame+1]
-    trace_y = V_x[:frame+1]
-    trace.set_data(trace_x, trace_y)
-    current_x = [x_stars[frame]]
-    current_y = [V_x[frame]]
-    current_plot.set_data(current_x, current_y)
-    return trace, current_plot
-
-animate = ani.FuncAnimation(fig, update, frames=L, init_func=init, blit=False, interval=50, repeat=False)
-plt.show()
-
-'''
-COMMENTS:
-- Want Leps = 1 (will later change), at mo this is resulting in many L iterations (1e8,1e-8), code takes a long time to run.
-- Tolerance I have chosen as 1e-6... I feel like this is still pretty high but maybe I can adapt it later.
-- For some reason a very high acceptance ratio (+90%) 
-- PROBLEM: Algorithm is bad; if given initial x as positive, then all xs positive, if started negative then all xs negative; 
-only 0 allows x to take both positive and negative values.... this seems bad. 
-'''
+print(RMHMC(L,eps, k,lam,tol,n,d)[0],RMHMC(L,eps, k,lam,tol,n,d)[6])
+print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],\
+      "Standardised standard deviation of x=",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[1] ,\
+       "Expected KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[0], \
+       "Standardised standard deviation of KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[1],\
+       "Expected PE =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[0],\
+       "Standardised standard deviation of PE = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[1],\
+       "Expected exp(-delH)= " ,mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[3]),n, 1e-6)[0],\
+       "Standardised standard deviation of exp(-delH) = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[3]),n, 1e-6)[1],\
+        "Expected error =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[0],\
+        "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
+        "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
