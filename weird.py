@@ -36,16 +36,6 @@ def K(p, x,d):
 def H(x, p,d):
     return an_V(x,k,lam) + K(p, x, d) 
 
-# Setting up the plot for the dynamics
-fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(-1.1,1.1)
-fig.supxlabel("x")
-ax.set_ylim(-1.1,1.1)
-fig.supylabel("V(x)")
-ax.set_title("Potential")
-trace, = ax.plot([],[])
-current_plot, = ax.plot([],[]) # This prints (blank)
-
 def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     '''
     Rewriting the anharmonic HMC class but for RMHMC in one dimension. 
@@ -148,17 +138,17 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             #("On iter", l, "with p_star =", p_star, "p_guess =", p_guess)
             # PROBLEM IS HERE WHERE P VALUES AREN'T CONVERGING
             while True:
-                print("Count=",count)
+                #("Count=",count)
                 count = count +1
-                print("Middle step iter[",l,"] p_star is :", p_star)
-                print("Using x_star:", x_star)
+                #("Middle step iter[",l,"] p_star is :", p_star)
+                #("Using x_star:", x_star)
                 p_star = p_current - eps\
                                         *(k*x_star + lam*x_star**3\
                                              + 0.5*p_guess**2*(-6*lam*x_star)\
                                              + 0.5*abs(-6*lam*x_star)/M(x_star,d))
-                print("Calculated p_star =", p_star)
-                print("p_guess is", p_guess)
-                print("Difference in ps", abs(p_star - p_guess))
+                #("Calculated p_star =", p_star)
+                #("p_guess is", p_guess)
+                #("Difference in ps", abs(p_star - p_guess))
                 if p_star > 1e14:
                     print("BROKE p_star too big")
                     break
@@ -214,10 +204,11 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         p_current = p_star
         p_guess = p_star
         count = 1
-        while True:
-            print("Count=",count)
+        max_iter = 100
+        while count < max_iter:
+            #("Count=",count)
             count = count+1
-            p_star = p_guess - 0.5*eps\
+            p_star = p_current - 0.5*eps\
                                     *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
                                         + 0.5*abs(-6*lam*x_star)/M(x_star,d))
             #("p_star is :", p_star)
@@ -316,7 +307,26 @@ def mean_and_sd(list, n, d):
 #         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
 #         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
 
-x_stars, V_x = RMHMC(L,eps,k,lam,tol,n,d)[6],RMHMC(L,eps,k,lam,tol,n,d)[7]
+# Store the results from running the RMHMC alg
+print("1. Starting RMHMC calculation...")
+results = RMHMC(L,eps,k,lam,tol,n,d)
+print("2. RMHMC calculation complete!")
+x_stars = np.array(results[6])
+V_x = np.array(results[7])
+stride = 50
+x_anim = x_stars[::stride]
+V_anim = V_x[::stride]
+print(f"3. Data collected: {len(x_anim)} points. Setting up plot...")
+
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(min(x_stars)-1,max(x_stars)+1)
+fig.supxlabel("x")
+ax.set_ylim(min(V_x)-1,max(V_x)+1)
+fig.supylabel("V(x)")
+ax.set_title("Potential")
+trace, = ax.plot([],[])
+current_plot, = ax.plot([],[]) # This prints (blank)
 
 # Functions for the dynamics
 def init():
@@ -324,15 +334,17 @@ def init():
     current_plot.set_data([],[])
     return trace, current_plot
 def update(frame):
-    trace_x = x_stars[:frame+1]
-    trace_y = V_x[:frame+1]
+    trace_x = x_anim[:frame+1]
+    trace_y = V_anim[:frame+1]
     trace.set_data(trace_x, trace_y)
-    current_x = [x_stars[frame]]
-    current_y = [V_x[frame]]
+    current_x = [x_anim[frame]]
+    current_y = [V_anim[frame]]
     current_plot.set_data(current_x, current_y)
     return trace, current_plot
 
-animate = ani.FuncAnimation(fig, update, frames=L, init_func=init, blit=False, interval=50, repeat=False)
+print(len(x_stars))
+animate = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=50, repeat=False)
+fig.canvas.manager.window.attributes('-topmost', 1)
 plt.show()
 
 '''
@@ -344,6 +356,5 @@ RMHMC ALG
 - PROBLEM: Algorithm is bad; if given initial x as positive, then all xs positive, if started negative then all xs negative; 
 only 0 allows x to take both positive and negative values.... this seems bad. 
 ANIMATION
-- For some reason the code gets really stuck at the final steps (won't even go past count 1) but this works fine when I 
-haven't got the animation things going on.
+- Won't appear 
 '''

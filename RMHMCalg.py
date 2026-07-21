@@ -234,7 +234,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         while True:
             #("Count=",count)
             count = count+1
-            p_star = p_guess - 0.5*eps\
+            p_star = p_current - 0.5*eps\
                                     *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
                                         + 0.5*abs(-6*lam*x_star)/M(x_star,d))
             #("p_star is :", p_star)
