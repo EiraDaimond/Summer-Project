@@ -9,7 +9,7 @@ eps = 1e-8
 k = 1
 lam = 1
 n = 10
-tol = 1e-6
+tol = 1e-14
 d = 1e-6
 
 # Define the anharmonic potential term
@@ -138,7 +138,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             #("On iter", l, "with p_star =", p_star, "p_guess =", p_guess)
             # PROBLEM IS HERE WHERE P VALUES AREN'T CONVERGING
             while True:
-                #("Count=",count)
+                print("Count=",count)
                 count = count +1
                 #("Middle step iter[",l,"] p_star is :", p_star)
                 #("Using x_star:", x_star)
