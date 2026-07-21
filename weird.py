@@ -55,7 +55,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     exps_delH = []
     errors = []
     accepted = []
-    for_animation = np.zeros([L+1,2])
+    for_animation = np.zeros((L+1,2),dtype=float)
     # Start the loop to generate x values
     for t in range(n+1):
         print("On iteration:", t)
@@ -124,9 +124,11 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                         x_guess = x_star
             #()
         #("Moving on from 1st step with x_star", x_star)
+        #("x_star is now", x_star)
         x_stars.append(x_star)
         V_x.append(an_V(x_star,k,lam))
-        for_animation[0:0],for_animation[0:1] = x_stars[-1],1
+        for_animation[0] = [x_star,1]
+        print(for_animation)
         #("CODE WORKS UP TO HERE")
         #()
         print("STARTING MIDDLE STEPS")
@@ -199,7 +201,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             #("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
             V_x.append(an_V(x_star,k,lam))  
-            for_animation[l:0], for_animation[l:1] = x_stars[-1],l
+            for_animation[l] = [x_stars[-1],l]
         #()
         print("STARTING FINAL STEPS")
         #()
@@ -230,7 +232,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                     else:
                         p_guess = p_star
             #()
-            for_animation[L+1:0], for_animation[L+1:1]= x_stars[-1],L
+            for_animation[L] = [x_stars[-1],L]
         # Compute the acceptance ratio
         r = np.exp(-H(x_star, p_star,d) + H(x[t], p,d))
         # Draw W from a Uniform distribution
@@ -284,19 +286,19 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     # plt.show()
     return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, for_animation
     
-# Find the expected value of x and corresponding standardised standard deviation
-def mean_and_sd(list, n, d):
-    '''
-    Given a list of values, compute the expected value (with burn-in removed), 
-    and corresponding standardised standar deviation.
-    '''
-    length = len(list)
-    values_to_use = list[math.ceil(length/10):]
-    # Initialise the sd_list
-    sd_list = [0]*(len(values_to_use))
-    for i in range(len(values_to_use)):
-        sd_list[i] = M(values_to_use[i], d)
-    return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
+# # Find the expected value of x and corresponding standardised standard deviation
+# def mean_and_sd(list, n, d):
+#     '''
+#     Given a list of values, compute the expected value (with burn-in removed), 
+#     and corresponding standardised standar deviation.
+#     '''
+#     length = len(list)
+#     values_to_use = list[math.ceil(length/10):]
+#     # Initialise the sd_list
+#     sd_list = [0]*(len(values_to_use))
+#     for i in range(len(values_to_use)):
+#         sd_list[i] = M(values_to_use[i], d)
+#     return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
 
 #print(RMHMC(L,eps, k,lam,tol,n,d)[0])
 # print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],\
@@ -311,7 +313,7 @@ def mean_and_sd(list, n, d):
 #         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
 #         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
 
-print(RMHMC(L,eps,k,lam,tol,n,d)[6])
+print(RMHMC(L,eps,k,lam,tol,n,d)[6])#,RMHMC(L,eps,k,lam,tol,n,d)[6])
 # # Store the results from running the RMHMC alg
 # print("1. Starting RMHMC calculation...")
 # results = RMHMC(L,eps,k,lam,tol,n,d)
