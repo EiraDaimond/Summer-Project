@@ -337,9 +337,13 @@ plt.show()
 
 '''
 COMMENTS:
+RMHMC ALG
 - Want Leps = 1 (will later change), at mo this is resulting in many L iterations (1e8,1e-8), code takes a long time to run.
 - Tolerance I have chosen as 1e-6... I feel like this is still pretty high but maybe I can adapt it later.
 - For some reason a very high acceptance ratio (+90%) 
 - PROBLEM: Algorithm is bad; if given initial x as positive, then all xs positive, if started negative then all xs negative; 
 only 0 allows x to take both positive and negative values.... this seems bad. 
+ANIMATION
+- For some reason the code gets really stuck at the final steps (won't even go past count 1) but this works fine when I 
+haven't got the animation things going on.
 '''

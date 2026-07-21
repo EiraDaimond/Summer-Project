@@ -320,7 +320,7 @@ def mean_and_sd(list, n, d):
         sd_list[i] = M(values_to_use[i], d)
     return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
 
-print(RMHMC(L,eps, k,lam,tol,n,d)[0],RMHMC(L,eps, k,lam,tol,n,d)[6])
+print(RMHMC(L,eps, k,lam,tol,n,d)[0])
 print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],\
       "Standardised standard deviation of x=",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[1] ,\
        "Expected KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[0], \
