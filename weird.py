@@ -55,6 +55,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     exps_delH = []
     errors = []
     accepted = []
+    for_animation = np.zeros([L+1,2])
     # Start the loop to generate x values
     for t in range(n+1):
         print("On iteration:", t)
@@ -125,6 +126,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         #("Moving on from 1st step with x_star", x_star)
         x_stars.append(x_star)
         V_x.append(an_V(x_star,k,lam))
+        for_animation[0:0],for_animation[0:1] = x_stars[-1],1
         #("CODE WORKS UP TO HERE")
         #()
         print("STARTING MIDDLE STEPS")
@@ -197,6 +199,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             #("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
             V_x.append(an_V(x_star,k,lam))  
+            for_animation[l:0], for_animation[l:1] = x_stars[-1],l
         #()
         print("STARTING FINAL STEPS")
         #()
@@ -227,6 +230,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                     else:
                         p_guess = p_star
             #()
+            for_animation[L+1:0], for_animation[L+1:1]= x_stars[-1],L
         # Compute the acceptance ratio
         r = np.exp(-H(x_star, p_star,d) + H(x[t], p,d))
         # Draw W from a Uniform distribution
@@ -278,7 +282,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     # ax.spines['left'].set_position('center').label("V(x)")
     # ax.spines['bottom'].label("x")
     # plt.show()
-    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, x_stars, V_x # x_stars and V_x will be from last loop (nth)
+    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, for_animation
     
 # Find the expected value of x and corresponding standardised standard deviation
 def mean_and_sd(list, n, d):
@@ -307,45 +311,46 @@ def mean_and_sd(list, n, d):
 #         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
 #         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
 
-# Store the results from running the RMHMC alg
-print("1. Starting RMHMC calculation...")
-results = RMHMC(L,eps,k,lam,tol,n,d)
-print("2. RMHMC calculation complete!")
-x_stars = np.array(results[6])
-V_x = np.array(results[7])
-stride = 50
-x_anim = x_stars[::stride]
-V_anim = V_x[::stride]
-print(f"3. Data collected: {len(x_anim)} points. Setting up plot...")
+print(RMHMC(L,eps,k,lam,tol,n,d)[6])
+# # Store the results from running the RMHMC alg
+# print("1. Starting RMHMC calculation...")
+# results = RMHMC(L,eps,k,lam,tol,n,d)
+# print("2. RMHMC calculation complete!")
+# x_stars = np.array(results[6])
+# V_x = np.array(results[7])
+# stride = 50
+# x_anim = x_stars[::stride]
+# V_anim = V_x[::stride]
+# print(f"3. Data collected: {len(x_anim)} points. Setting up plot...")
 
-# Setting up the plot for the dynamics
-fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(min(x_stars)-1,max(x_stars)+1)
-fig.supxlabel("x")
-ax.set_ylim(min(V_x)-1,max(V_x)+1)
-fig.supylabel("V(x)")
-ax.set_title("Potential")
-trace, = ax.plot([],[])
-current_plot, = ax.plot([],[]) # This prints (blank)
+# # Setting up the plot for the dynamics
+# fig, ax = plt.subplots(figsize=(10,10))
+# ax.set_xlim(min(x_stars)-1,max(x_stars)+1)
+# fig.supxlabel("x")
+# ax.set_ylim(min(V_x)-1,max(V_x)+1)
+# fig.supylabel("V(x)")
+# ax.set_title("Potential")
+# trace, = ax.plot([],[])
+# current_plot, = ax.plot([],[]) # This prints (blank)
 
-# Functions for the dynamics
-def init():
-    trace.set_data([],[])
-    current_plot.set_data([],[])
-    return trace, current_plot
-def update(frame):
-    trace_x = x_anim[:frame+1]
-    trace_y = V_anim[:frame+1]
-    trace.set_data(trace_x, trace_y)
-    current_x = [x_anim[frame]]
-    current_y = [V_anim[frame]]
-    current_plot.set_data(current_x, current_y)
-    return trace, current_plot
+# # Functions for the dynamics
+# def init():
+#     trace.set_data([],[])
+#     current_plot.set_data([],[])
+#     return trace, current_plot
+# def update(frame):
+#     trace_x = x_anim[:frame+1]
+#     trace_y = V_anim[:frame+1]
+#     trace.set_data(trace_x, trace_y)
+#     current_x = [x_anim[frame]]
+#     current_y = [V_anim[frame]]
+#     current_plot.set_data(current_x, current_y)
+#     return trace, current_plot
 
-print(len(x_stars))
-animate = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=50, repeat=False)
-fig.canvas.manager.window.attributes('-topmost', 1)
-plt.show()
+# print(len(x_stars))
+# animate = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=50, repeat=False)
+# fig.canvas.manager.window.attributes('-topmost', 1)
+# animate.save("animate.gif")
 
 '''
 COMMENTS:
