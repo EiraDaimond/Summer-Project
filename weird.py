@@ -314,40 +314,37 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
 #         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
 
 print(RMHMC(L,eps,k,lam,tol,n,d)[6])#,RMHMC(L,eps,k,lam,tol,n,d)[6])
-# # Store the results from running the RMHMC alg
-# print("1. Starting RMHMC calculation...")
-# results = RMHMC(L,eps,k,lam,tol,n,d)
-# print("2. RMHMC calculation complete!")
-# x_stars = np.array(results[6])
-# V_x = np.array(results[7])
-# stride = 50
-# x_anim = x_stars[::stride]
-# V_anim = V_x[::stride]
-# print(f"3. Data collected: {len(x_anim)} points. Setting up plot...")
+# Store the results from running the RMHMC alg
+print("1. Starting RMHMC calculation...")
+results = RMHMC(L,eps,k,lam,tol,n,d)
+print("2. RMHMC calculation complete!")
+x_anim = np.array(results[6])[0]
+y_anim = np.array(results[6])[1]
+print(f"3. Data collected: {len(x_anim)} points. Setting up plot...")
 
-# # Setting up the plot for the dynamics
-# fig, ax = plt.subplots(figsize=(10,10))
-# ax.set_xlim(min(x_stars)-1,max(x_stars)+1)
-# fig.supxlabel("x")
-# ax.set_ylim(min(V_x)-1,max(V_x)+1)
-# fig.supylabel("V(x)")
-# ax.set_title("Potential")
-# trace, = ax.plot([],[])
-# current_plot, = ax.plot([],[]) # This prints (blank)
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(min(for_animation[0])-1,max(for_animation[0])+1)
+fig.supxlabel("x")
+ax.set_ylim(min(for_animation[1]))-1,max(for_animation[1])+1)
+fig.supylabel("V(x)")
+ax.set_title("Potential")
+trace, = ax.plot([],[])
+current_plot, = ax.plot([],[]) # This prints (blank)
 
-# # Functions for the dynamics
-# def init():
-#     trace.set_data([],[])
-#     current_plot.set_data([],[])
-#     return trace, current_plot
-# def update(frame):
-#     trace_x = x_anim[:frame+1]
-#     trace_y = V_anim[:frame+1]
-#     trace.set_data(trace_x, trace_y)
-#     current_x = [x_anim[frame]]
-#     current_y = [V_anim[frame]]
-#     current_plot.set_data(current_x, current_y)
-#     return trace, current_plot
+# Functions for the dynamics
+def init():
+    trace.set_data([],[])
+    current_plot.set_data([],[])
+    return trace, current_plot
+def update(frame):
+    trace_x = x_anim[:frame+1]
+    trace_y = V_anim[:frame+1]
+    trace.set_data(trace_x, trace_y)
+    current_x = [x_anim[frame]]
+    current_y = [V_anim[frame]]
+    current_plot.set_data(current_x, current_y)
+    return trace, current_plot
 
 # print(len(x_stars))
 # animate = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=50, repeat=False)
