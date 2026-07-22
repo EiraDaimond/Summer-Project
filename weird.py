@@ -9,7 +9,7 @@ eps = 1e-8
 k = 1
 lam = 1
 n = 10
-tol = 1e-14
+tol = 1e-12
 d = 1e-6
 
 # Define the anharmonic potential term
@@ -55,7 +55,8 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     exps_delH = []
     errors = []
     accepted = []
-    for_animation = np.zeros((L+1,2),dtype=float)
+    for_animation_x = np.zeros((L+1,2),dtype=float)
+    for_animation_p = np.zeros((L+1,2), dtype = float)
     # Start the loop to generate x values
     for t in range(n+1):
         print("On iteration:", t)
@@ -99,6 +100,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             #()
         #("Moving on from 1st step with p_star", p_star)  
         p_stars.append(p_star)
+        for_animation_p[0] = [p_star, 1]
         # x convergence
         x_guess = x[t]
         x_star = 0
@@ -127,8 +129,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
         #("x_star is now", x_star)
         x_stars.append(x_star)
         V_x.append(an_V(x_star,k,lam))
-        for_animation[0] = [x_star,1]
-        print(for_animation)
+        for_animation_x[0] = [x_star,1]
         #("CODE WORKS UP TO HERE")
         #()
         print("STARTING MIDDLE STEPS")
@@ -169,6 +170,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                 print()
             #("Moving on from middle step iter [",l,"] with p_star", p_star)
             p_stars.append(p_star)
+            for_animation_p[l] = [p_star, l]
             #()
             #("STARTING x convergence")
             #()
@@ -201,7 +203,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             #("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
             V_x.append(an_V(x_star,k,lam))  
-            for_animation[l] = [x_stars[-1],l]
+            for_animation_x[l] = [x_stars[-1],l]
         #()
         print("STARTING FINAL STEPS")
         #()
@@ -232,7 +234,8 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                     else:
                         p_guess = p_star
             #()
-            for_animation[L] = [x_stars[-1],L]
+            for_animation_x[L] = [x_stars[-1],L]
+            for_animation_p[L] = [p_stars[-1],L]
         # Compute the acceptance ratio
         r = np.exp(-H(x_star, p_star,d) + H(x[t], p,d))
         # Draw W from a Uniform distribution
@@ -277,14 +280,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
             errors.append(error)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
-    # # Plot the anharmonic potential
-    # burn_in = math.ceil(len(x)/10)
-    # ax = plt.subplots()
-    # ax.plot(x[burn_in:],PE_vals[burn_in:])
-    # ax.spines['left'].set_position('center').label("V(x)")
-    # ax.spines['bottom'].label("x")
-    # plt.show()
-    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, for_animation
+    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, for_animation_x, for_animation_p
     
 # # Find the expected value of x and corresponding standardised standard deviation
 # def mean_and_sd(list, n, d):
@@ -313,29 +309,44 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
 #         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
 #         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
 
-print(RMHMC(L,eps,k,lam,tol,n,d)[6])#,RMHMC(L,eps,k,lam,tol,n,d)[6])
 # Store the results from running the RMHMC alg
-print("1. Starting RMHMC calculation...")
 results = RMHMC(L,eps,k,lam,tol,n,d)
-print("2. RMHMC calculation complete!")
 x_anim = np.array(results[6])[:,1]
 y_anim = np.array(results[6])[:,0]
-print(f"3. Data collected: {len(x_anim)} points. Setting up plot...")
+x_anim_p = np.array(results[7])[:,1]
+y_anim_p = np.array(results[7])[:,0]
+stride = 20
+x_anim = x_anim[::stride]
+y_anim = y_anim[::stride]
+x_anim_p = x_anim_p[::stride]
+y_anim_p = y_anim_p[::stride]
 
 # Setting up the plot for the dynamics
 fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(min(x_anim)-1,max(x_anim+1))
-fig.supxlabel("t")
-ax.set_ylim(min(y_anim)-1,max(y_anim)+1)
-fig.supylabel("x")
+ax.set_xlim(min(x_anim)-1,max(x_anim)+1)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(min(y_anim)-0.00001,max(y_anim)+0.00001)
+fig.supylabel("Value")
 ax.set_title("x dynamics")
 trace, = ax.plot([],[])
-current_plot, = ax.plot([],[]) # This prints (blank)
+current_plot, = ax.plot([],[]) 
+
+# Setting up the plot for the dynamics
+fig_p, ax_p = plt.subplots(figsize=(10,10))
+ax_p.set_xlim(min(x_anim_p)-1,max(x_anim_p)+1)
+fig_p.supxlabel("Leapfrog step")
+ax_p.set_ylim(min(y_anim_p)-0.0000000001,max(y_anim_p)+0.000000001)
+fig_p.supylabel("Value")
+ax_p.set_title("p dynamics")
+trace_p, = ax_p.plot([],[])
+current_plot_p, = ax_p.plot([],[]) 
 
 # Functions for the dynamics
 def init():
     trace.set_data([],[])
     current_plot.set_data([],[])
+    trace.set_color('blue')
+    current_plot.set_color('green')
     return trace, current_plot
 def update(frame):
     trace_x = x_anim[:frame+1]
@@ -345,11 +356,29 @@ def update(frame):
     current_y = [y_anim[frame]]
     current_plot.set_data(current_x, current_y)
     return trace, current_plot
+def init_p():
+    trace_p.set_data([],[])
+    current_plot_p.set_data([],[])
+    trace_p.set_color('red')
+    current_plot_p.set_color('green')
+    return trace_p, current_plot_p
+def update_p(frame):
+    trace_x_p = x_anim_p[:frame+1]
+    trace_y_p = y_anim_p[:frame+1]
+    trace_p.set_data(trace_x_p, trace_y_p)
+    current_x_p = [x_anim_p[frame]]
+    current_y_p = [y_anim_p[frame]]
+    current_plot_p.set_data(current_x_p, current_y_p)
+    return trace_p, current_plot_p
 
-animate = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=100, repeat=False)
+animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=50, repeat=False)
 fig.canvas.manager.window.attributes('-topmost', 1)
-print(len(x_anim))
-animate.save("animate.gif")
+animate_x.save("animate_x.gif", writer = 'pillow')
+plt.close()
+animate_p = ani.FuncAnimation(fig_p, update_p, frames=(len(x_anim_p)-1), init_func=init_p, blit=False, interval=50, repeat=False)
+fig_p.canvas.manager.window.attributes('-topmost', 1)
+animate_p.save("animate_p.gif", writer = 'pillow')
+plt.close()
 
 '''
 COMMENTS:
