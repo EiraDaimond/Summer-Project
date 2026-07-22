@@ -318,17 +318,17 @@ print(RMHMC(L,eps,k,lam,tol,n,d)[6])#,RMHMC(L,eps,k,lam,tol,n,d)[6])
 print("1. Starting RMHMC calculation...")
 results = RMHMC(L,eps,k,lam,tol,n,d)
 print("2. RMHMC calculation complete!")
-x_anim = np.array(results[6])[0]
-y_anim = np.array(results[6])[1]
+x_anim = np.array(results[6])[:,1]
+y_anim = np.array(results[6])[:,0]
 print(f"3. Data collected: {len(x_anim)} points. Setting up plot...")
 
 # Setting up the plot for the dynamics
 fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(min(for_animation[0])-1,max(for_animation[0])+1)
-fig.supxlabel("x")
-ax.set_ylim(min(for_animation[1]))-1,max(for_animation[1])+1)
-fig.supylabel("V(x)")
-ax.set_title("Potential")
+ax.set_xlim(min(x_anim)-1,max(x_anim+1))
+fig.supxlabel("t")
+ax.set_ylim(min(y_anim)-1,max(y_anim)+1)
+fig.supylabel("x")
+ax.set_title("x dynamics")
 trace, = ax.plot([],[])
 current_plot, = ax.plot([],[]) # This prints (blank)
 
@@ -339,17 +339,17 @@ def init():
     return trace, current_plot
 def update(frame):
     trace_x = x_anim[:frame+1]
-    trace_y = V_anim[:frame+1]
+    trace_y = y_anim[:frame+1]
     trace.set_data(trace_x, trace_y)
     current_x = [x_anim[frame]]
-    current_y = [V_anim[frame]]
+    current_y = [y_anim[frame]]
     current_plot.set_data(current_x, current_y)
     return trace, current_plot
 
-# print(len(x_stars))
-# animate = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=50, repeat=False)
-# fig.canvas.manager.window.attributes('-topmost', 1)
-# animate.save("animate.gif")
+animate = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=100, repeat=False)
+fig.canvas.manager.window.attributes('-topmost', 1)
+print(len(x_anim))
+animate.save("animate.gif")
 
 '''
 COMMENTS:
