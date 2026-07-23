@@ -6,7 +6,7 @@ import matplotlib.animation as ani
 # Define the variables to be used
 L = 10000
 eps = 1e-8
-k = 1
+k = -1
 lam = 1
 n = 10
 tol = 1e-12
@@ -323,21 +323,21 @@ y_anim_p = y_anim_p[::stride]
 
 # Setting up the plot for the dynamics
 fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(min(min(x_anim),min(x_anim_p))-1,max(max(x_anim_p),max((x_anim)))+1)
+ax.set_xlim(min(x_anim)-1,max(x_anim)+1)
 fig.supxlabel("Leapfrog step")
-ax.set_ylim(min(min(y_anim_p),min(y_anim))-0.00001,max(max(y_anim_p), max(y_anim))+0.00001)
+ax.set_ylim(min(y_anim)-0.0000001,max(y_anim)+0.0000001)
 fig.supylabel(")Value")
 ax.set_title("x dynamics")
 trace, = ax.plot([],[])
 current_plot, = ax.plot([],[]) 
 
-# # Setting up the plot for the dynamics
-# fig_p, ax_p = plt.subplots(figsize=(10,10))
-# ax_p.set_xlim(min(x_anim_p)-1,max(x_anim_p)+1)
-# fig_p.supxlabel("Leapfrog step")
-# ax_p.set_ylim(min(y_anim_p)-0.0000000001,max(y_anim_p)+0.000000001)
-# fig_p.supylabel("Value")
-# ax_p.set_title("p dynamics")
+# Setting up the plot for the dynamics
+fig_p, ax_p = plt.subplots(figsize=(10,10))
+ax_p.set_xlim(min(x_anim_p)-1,max(x_anim_p)+1)
+fig_p.supxlabel("Leapfrog step")
+ax_p.set_ylim(min(y_anim_p)-0.0000000001,max(y_anim_p)+0.000000001)
+fig_p.supylabel("Value")
+ax_p.set_title("p dynamics")
 trace_p, = ax.plot([],[])
 current_plot_p, = ax.plot([],[]) 
 
@@ -381,7 +381,7 @@ def update(frame):
 #     current_plot_p.set_data(current_x_p, current_y_p)
 #     return trace_p, current_plot_p
 
-animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=50, repeat=False)
+animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=20, repeat=False)
 fig.canvas.manager.window.attributes('-topmost', 1)
 animate_x.save("animate_x.gif", writer = 'pillow')
 # animate_p = ani.FuncAnimation(fig, update_p, frames=(len(x_anim_p)-1), init_func=init_p, blit=False, interval=50, repeat=False)

@@ -112,7 +112,7 @@ def HMC(n,L,eps):
 def mean_and_sd(x,m,n):
     '''
     Given a list of values, compute the expected value (with burn-in removed), 
-    and corresponding standardised standar deviation.
+    and corresponding standardised standard deviation.
     '''
     values_to_use = x[math.ceil(len(x)/10):]
     stand_sd = m**0.5/(n-1)**0.5
@@ -129,3 +129,8 @@ print("Expected x =", mean_and_sd(HMC(100000,L,eps)[0],1,100000)[0],\
         "Expected error =", mean_and_sd(HMC(100000, L, eps)[4],1,100000)[0],\
         "Standardised standard deviation of error=", mean_and_sd(HMC(100000,L,eps)[4],1,100000)[1],\
         "Acceptance ratio =" ,HMC(100000, L, eps)[5])
+
+'''
+COMMENTS
+- Standard deviation is wrong, need to fix
+'''
