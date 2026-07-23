@@ -22,7 +22,11 @@ def an_V(x,k,lam):
 
 # Define the metric tensor (second derivative of the potential term)
 def G(x,k,lam):
-    return k + 3*lam*x**2
+    if k>0: 
+        G = k + 3*lam*x**2
+    else:
+        G = -k + 3*lam*x**2
+    return G
     
 # Define M (including delta).... to be used to avoid division by 0 errors
 def M(x, d):

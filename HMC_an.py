@@ -12,9 +12,9 @@ lam = 1
 # Define the anharmonic potential term
 def an_V(x,k,lam):
     if k >0:
-        an_V = 0.25*lam*x**4 + 0.5*lam*k*x**2
+        an_V = 0.25*lam**2*x**4 + 0.5*lam*k*x**2
     else:
-        an_V = 0.25*lam*x**4 - 0.5*lam*k*x**2
+        an_V = 0.25*lam**2*x**4 - 0.5*lam*k*x**2
     return an_V
 
 # Define the anharmonic Hamiltonian
