@@ -2,47 +2,44 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 import matplotlib.animation as ani
+from mpl_toolkits.mplot3d import Axes3D
 
-# Define the variables to be used
-L = 10000
-eps = 1e-8
-k = -1
-lam = 1
-n = 10
-tol = 1e-12
-d = 1e-6
-
-# Define the anharmonic potential term
-def an_V(x,k,lam):
-    if k >0:
-        an_V = 0.25*lam*x**4 + 0.5*lam*k*x**2
-    else:
-        an_V = 0.25*lam*x**4 - 0.5*lam*k*x**2
-    return an_V
-
-# Define the metric tensor (second derivative of the potential term)
-def G(x,k,lam):
-    return k + 3*lam*x**2
-    
-# Define M (including delta).... to be used to avoid division by 0 errors
-def M(x, d):
-    return np.sqrt(abs(G(x,k,lam)**2+d**2))
-
-# Define the kinetic energy term (include correction term)
-def K(p, x,d):
-    return 0.5*p*M(x,d)*p + 0.5*np.log(np.abs(M(x,d)))
-
-# Define the Hamiltonian
-def H(x, p,d):
-    return an_V(x,k,lam) + K(p, x, d) 
-
-def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
+def RMHMC(L = 10000,
+            eps = 1e-8,
+            k = -1,
+            lam = 1,
+            n = 1000,
+            tol = 1e-12,
+            d = 1e-6):
     '''
     Rewriting the anharmonic HMC class but for RMHMC in one dimension. 
     Mass is non-constant and is instead represented by the metric tensor which I 
     shall denote G. In the 1D case, this is just a scalar. 
     ''' 
- 
+        # Define the anharmonic potential term
+    def an_V(x,k,lam):
+        if k >0:
+            an_V = 0.25*lam*x**4 + 0.5*lam*k*x**2
+        else:
+            an_V = 0.25*lam*x**4 - 0.5*lam*k*x**2
+        return an_V
+
+    # Define the metric tensor (second derivative of the potential term)
+    def G(x,k,lam):
+        return k + 3*lam*x**2
+        
+    # Define M (including delta).... to be used to avoid division by 0 errors
+    def M(x, d):
+        return np.sqrt(abs(G(x,k,lam)**2+d**2))
+
+    # Define the kinetic energy term (include correction term)
+    def K(p, x,d):
+        return 0.5*p*M(x,d)*p + 0.5*np.log(np.abs(M(x,d)))
+
+    # Define the Hamiltonian
+    def H(x, p,d):
+        return an_V(x,k,lam) + K(p, x, d) 
+    
     # Run the RMHMC algorithm
     '''
     Carry out the RMHMC algorithm to generate x values. 
@@ -55,8 +52,8 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     exps_delH = []
     errors = []
     accepted = []
-    for_animation_x = np.zeros((L+1,2),dtype=float)
-    for_animation_p = np.zeros((L+1,2), dtype = float)
+    for_animation_x = np.zeros((L+1,2),dtype=int)
+    for_animation_p = np.zeros((L+1,2), dtype = int)
     # Start the loop to generate x values
     for t in range(n+1):
         print("On iteration:", t)
@@ -282,19 +279,19 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
     acc_rat = (len(accepted)/len(x))*100
     return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, for_animation_x, for_animation_p
     
-# # Find the expected value of x and corresponding standardised standard deviation
-# def mean_and_sd(list, n, d):
-#     '''
-#     Given a list of values, compute the expected value (with burn-in removed), 
-#     and corresponding standardised standar deviation.
-#     '''
-#     length = len(list)
-#     values_to_use = list[math.ceil(length/10):]
-#     # Initialise the sd_list
-#     sd_list = [0]*(len(values_to_use))
-#     for i in range(len(values_to_use)):
-#         sd_list[i] = M(values_to_use[i], d)
-#     return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
+# Find the expected value of x and corresponding standardised standard deviation
+def mean_and_sd(list, n, d):
+    '''
+    Given a list of values, compute the expected value (with burn-in removed), 
+    and corresponding standardised standar deviation.
+    '''
+    length = len(list)
+    values_to_use = list[math.ceil(length/10):]
+    # Initialise the sd_list
+    sd_list = [0]*(len(values_to_use))
+    for i in range(len(values_to_use)):
+        sd_list[i] = M(values_to_use[i], d)
+    return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
 
 #print(RMHMC(L,eps, k,lam,tol,n,d)[0])
 # print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],\
@@ -309,63 +306,69 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
 #         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
 #         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
 
-# Store the results from running the RMHMC alg
-results = RMHMC(L,eps,k,lam,tol,n,d)
-x_anim = np.array(results[6])[:,1]
-y_anim = np.array(results[6])[:,0]
-x_anim_p = np.array(results[7])[:,1]
-y_anim_p = np.array(results[7])[:,0]
-stride = 20
-x_anim = x_anim[::stride]
-y_anim = y_anim[::stride]
-x_anim_p = x_anim_p[::stride]
-y_anim_p = y_anim_p[::stride]
+# # Store the results from running the RMHMC alg
+results = RMHMC(L = 10000,
+            eps = 1e-8,
+            k = -1,
+            lam = 1,
+            n = 1,
+            tol = 1e-12,
+            d = 1e-6)
+# x_anim = np.array(results[6])[:,1]
+# y_anim = np.array(results[6])[:,0]
+# x_anim_p = np.array(results[7])[:,1]
+# y_anim_p = np.array(results[7])[:,0]
+# stride = 20
+# x_anim = x_anim[::stride]
+# y_anim = y_anim[::stride]
+# x_anim_p = x_anim_p[::stride]
+# y_anim_p = y_anim_p[::stride]
 
-# Setting up the plot for the dynamics
-fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(min(x_anim)-1,max(x_anim)+1)
-fig.supxlabel("Leapfrog step")
-ax.set_ylim(min(y_anim)-0.0000001,max(y_anim)+0.0000001)
-fig.supylabel(")Value")
-ax.set_title("x dynamics")
-trace, = ax.plot([],[])
-current_plot, = ax.plot([],[]) 
+# # Setting up the plot for the dynamics
+# fig, ax = plt.subplots(figsize=(10,10))
+# ax.set_xlim(min(x_anim)-1,max(x_anim)+1)
+# fig.supxlabel("Leapfrog step")
+# ax.set_ylim(min(y_anim)-0.0000001,max(y_anim)+0.0000001)
+# fig.supylabel(")Value")
+# ax.set_title("x dynamics")
+# trace, = ax.plot([],[])
+# current_plot, = ax.plot([],[]) 
 
-# Setting up the plot for the dynamics
-fig_p, ax_p = plt.subplots(figsize=(10,10))
-ax_p.set_xlim(min(x_anim_p)-1,max(x_anim_p)+1)
-fig_p.supxlabel("Leapfrog step")
-ax_p.set_ylim(min(y_anim_p)-0.0000000001,max(y_anim_p)+0.000000001)
-fig_p.supylabel("Value")
-ax_p.set_title("p dynamics")
-trace_p, = ax.plot([],[])
-current_plot_p, = ax.plot([],[]) 
+# # Setting up the plot for the dynamics
+# fig_p, ax_p = plt.subplots(figsize=(10,10))
+# ax_p.set_xlim(min(x_anim_p)-1,max(x_anim_p)+1)
+# fig_p.supxlabel("Leapfrog step")
+# ax_p.set_ylim(min(y_anim_p)-0.0000000001,max(y_anim_p)+0.000000001)
+# fig_p.supylabel("Value")
+# ax_p.set_title("p dynamics")
+# trace_p, = ax.plot([],[])
+# current_plot_p, = ax.plot([],[]) 
 
-# Functions for the dynamics
-def init():
-    trace.set_data([],[])
-    current_plot.set_data([],[])
-    trace.set_color('blue')
-    current_plot.set_color('green')
-    trace_p.set_data([],[])
-    current_plot_p.set_data([],[])
-    trace_p.set_color('red')
-    current_plot_p.set_color('green')
-    return trace, current_plot, trace_p, current_plot_p
-def update(frame):
-    trace_x = x_anim[:frame+1]
-    trace_y = y_anim[:frame+1]
-    trace.set_data(trace_x, trace_y)
-    current_x = [x_anim[frame]]
-    current_y = [y_anim[frame]]
-    current_plot.set_data(current_x, current_y)
-    trace_x_p = x_anim_p[:frame+1]
-    trace_y_p = y_anim_p[:frame+1]
-    trace_p.set_data(trace_x_p, trace_y_p)
-    current_x_p = [x_anim_p[frame]]
-    current_y_p = [y_anim_p[frame]]
-    current_plot_p.set_data(current_x_p, current_y_p)
-    return trace, current_plot, trace_p, current_plot_p
+# # Functions for the dynamics
+# def init():
+#     trace.set_data([],[])
+#     current_plot.set_data([],[])
+#     trace.set_color('blue')
+#     current_plot.set_color('green')
+#     trace_p.set_data([],[])
+#     current_plot_p.set_data([],[])
+#     trace_p.set_color('red')
+#     current_plot_p.set_color('green')
+#     return trace, current_plot, trace_p, current_plot_p
+# def update(frame):
+#     trace_x = x_anim[:frame+1]
+#     trace_y = y_anim[:frame+1]
+#     trace.set_data(trace_x, trace_y)
+#     current_x = [x_anim[frame]]
+#     current_y = [y_anim[frame]]
+#     current_plot.set_data(current_x, current_y)
+#     trace_x_p = x_anim_p[:frame+1]
+#     trace_y_p = y_anim_p[:frame+1]
+#     trace_p.set_data(trace_x_p, trace_y_p)
+#     current_x_p = [x_anim_p[frame]]
+#     current_y_p = [y_anim_p[frame]]
+#     current_plot_p.set_data(current_x_p, current_y_p)
+#     return trace, current_plot, trace_p, current_plot_p
 # def init_p():
 #     trace_p.set_data([],[])
 #     current_plot_p.set_data([],[])
@@ -381,21 +384,46 @@ def update(frame):
 #     current_plot_p.set_data(current_x_p, current_y_p)
 #     return trace_p, current_plot_p
 
-animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=20, repeat=False)
-fig.canvas.manager.window.attributes('-topmost', 1)
-animate_x.save("animate_x.gif", writer = 'pillow')
-# animate_p = ani.FuncAnimation(fig, update_p, frames=(len(x_anim_p)-1), init_func=init_p, blit=False, interval=50, repeat=False)
+# animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=20, repeat=False)
 # fig.canvas.manager.window.attributes('-topmost', 1)
-# animate_p.save("animate_p.gif", writer = 'pillow')
+# animate_x.save("animate_x.gif", writer = 'pillow')
+# # animate_p = ani.FuncAnimation(fig, update_p, frames=(len(x_anim_p)-1), init_func=init_p, blit=False, interval=50, repeat=False)
+# # fig.canvas.manager.window.attributes('-topmost', 1)
+# # animate_p.save("animate_p.gif", writer = 'pillow')
 
-'''
-COMMENTS:
-RMHMC ALG
-- Want Leps = 1 (will later change), at mo this is resulting in many L iterations (1e8,1e-8), code takes a long time to run.
-- Tolerance I have chosen as 1e-6... I feel like this is still pretty high but maybe I can adapt it later.
-- For some reason a very high acceptance ratio (+90%) 
-- PROBLEM: Algorithm is bad; if given initial x as positive, then all xs positive, if started negative then all xs negative; 
-only 0 allows x to take both positive and negative values.... this seems bad. 
-ANIMATION
-- Won't appear 
-'''
+# # Calculate gradient
+# L = 10
+# x_grad = (max(y_anim) - min(y_anim))/(L-1)
+# p_grad = (max(y_anim_p) - min(y_anim_p))/(L-1)
+# print("Gradient of x ani =", x_grad )
+# print("Gradient of p ani =", p_grad)
+
+# Plot s against exp_x error
+eps_vals = [1e-5,1e-4,0.001,0.01,0.1,1]
+L_vals = [1e5, 1e4, 1000, 100, 10, 1]
+xs = []
+for i in range(len(eps_vals)):
+    for j in range(len(L_vals)):
+        xs.append(RMHMC(L = L_vals[j],
+            eps = eps_vals[i],
+            k = -1,
+            lam = 1,
+            n = 1,
+            tol = 1e-12,
+            d = 1e-6))
+exp_xs = mean_and_sd(xs, n=1, d=1e-6)
+plot = np.zeros(len(exp_xs)+1)
+for k in range(len(plot)):
+    plot[k] = abs(exp_xs[k] - xs[k])
+fig = plt.figure()
+ax = plt.axes(projection='3d')
+ax.plot(eps_vals, L_vals, plot)
+plt.title("Epsilon, L, and Acceptance Ratio")
+plt.save("s_and_acc_rat.png")
+
+# # Checking KE
+# plt.plot(results[0][0:], results[1])
+# plt.xlabel("x")
+# plt.ylabel("KE")
+# plt.title("KE test")
+# plt.show()

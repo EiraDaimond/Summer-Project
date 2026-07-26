@@ -111,18 +111,16 @@ def mean_and_sd(x,m ,n):
     length = len(x)
     values_to_use = x[math.ceil(length/10):]
     stand_sd = m**0.5/(n-1)**0.5
-    return np.mean(values_to_use), stand_sd
+    return np.mean(values_to_use), stand_sd*np.std(values_to_use)
 
 print("Expected x =", mean_and_sd(an_HMC_alg(100000,L,eps)[0],1,100000)[0],\
       "Standardised standard deviation of x=", mean_and_sd(an_HMC_alg(100000,L,eps)[0],1,100000)[1],\
        "Expected KE = ",mean_and_sd(an_HMC_alg(100000, L, eps)[1],1,100000)[0], \
        "Standardised standard deviation of KE = ", mean_and_sd(an_HMC_alg(100000, L, eps)[1],1,100000)[1],\
-        "Expected PE =", mean_and_sd(an_HMC_alg(100000,L,eps)[2],1,100000)[0],\
-        "Standardised standard deviation of PE = ", mean_and_sd(an_HMC_alg(100000, L, eps)[2],1,100000)[1],\
-        "Expected exp(-delH)= " ,mean_and_sd(an_HMC_alg(100000,L,eps)[3],1,100000)[0],\
-        "Standardised standard deviation of exp(-delH) = ", mean_and_sd(an_HMC_alg(100000,L,eps)[3],1,100000)[1],\
-        "Expected error =", mean_and_sd(an_HMC_alg(100000, L, eps)[4],1,100000)[0],\
-        "Standardised standard deviation of error=", mean_and_sd(an_HMC_alg(100000,L,eps)[4],1,100000)[1],\
-        "Acceptance ratio =" ,an_HMC_alg(100000, L, eps)[5])
+        "Expected exp(-delH)= " ,mean_and_sd(an_HMC_alg(100000,L,eps)[2],1,100000)[0],\
+        "Standardised standard deviation of exp(-delH) = ", mean_and_sd(an_HMC_alg(100000,L,eps)[2],1,100000)[1],\
+        "Expected error =", mean_and_sd(an_HMC_alg(100000, L, eps)[3],1,100000)[0],\
+        "Standardised standard deviation of error=", mean_and_sd(an_HMC_alg(100000,L,eps)[3],1,100000)[1],\
+        "Acceptance ratio =" ,an_HMC_alg(100000, L, eps)[4])
 
 

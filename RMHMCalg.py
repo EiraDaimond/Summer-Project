@@ -314,7 +314,7 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
 def mean_and_sd(list, n, d):
     '''
     Given a list of values, compute the expected value (with burn-in removed), 
-    and corresponding standardised standar deviation.
+    and corresponding standardised standard deviation.
     '''
     length = len(list)
     values_to_use = list[math.ceil(length/10):]
@@ -322,7 +322,7 @@ def mean_and_sd(list, n, d):
     sd_list = [0]*(len(values_to_use))
     for i in range(len(values_to_use)):
         sd_list[i] = M(values_to_use[i], d)
-    return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
+    return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))*np.std(values_to_use)  
 
 print(RMHMC(L,eps, k,lam,tol,n,d)[0])
 print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],\
