@@ -62,14 +62,14 @@ def RMHMC(L = 10000,
     We will use the Generalised Leapfrog Method with the fixed point iteration.
     '''
     # Initialise the x, KE, PE, exps_delH, errors, accepted values list
-    x = [0] 
+    x = [1] 
     KE_vals =[]
     PE_vals= [0]
     exps_delH = []
     errors = []
     accepted = []
-    # for_animation_x = np.zeros((L+1,2),dtype=int)
-    # for_animation_p = np.zeros((L+1,2), dtype = int)
+    for_animation_x = np.zeros((L+1,2),dtype=int)
+    for_animation_p = np.zeros((L+1,2), dtype = int)
     # Start the loop to generate x values
     for t in range(n+1):
         # Initialise the x_star and p_star lists
@@ -112,7 +112,7 @@ def RMHMC(L = 10000,
             #()
         #("Moving on from 1st step with p_star", p_star)  
         p_stars.append(p_star)
-        # for_animation_p[0] = [p_star, 1]
+        for_animation_p[0] = [p_star, 1]
         # x convergence
         x_guess = x[t]
         x_star = 0
@@ -142,7 +142,7 @@ def RMHMC(L = 10000,
         #("x_star is now", x_star)
         x_stars.append(x_star)
         V_x.append(an_V(x_star,k,lam))
-        # for_animation_x[0] = [x_star,1]
+        for_animation_x[0] = [x_star,1]
         #("CODE WORKS UP TO HERE")
         #()
         #("STARTING MIDDLE STEPS")
@@ -183,7 +183,7 @@ def RMHMC(L = 10000,
                 #()
             #("Moving on from middle step iter [",l,"] with p_star", p_star)
             p_stars.append(p_star)
-            # for_animation_p[l] = [p_star, l]
+            for_animation_p[l] = [p_star, l]
             #()
             #("STARTING x convergence")
             #()
@@ -217,7 +217,7 @@ def RMHMC(L = 10000,
             #("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
             V_x.append(an_V(x_star,k,lam))  
-            # for_animation_x[l] = [x_stars[-1],l]
+            for_animation_x[l] = [x_stars[-1],l]
         #()
         #("STARTING FINAL STEPS")
         #()
@@ -248,8 +248,8 @@ def RMHMC(L = 10000,
                     else:
                         p_guess = p_star
             #()
-            # for_animation_x[L] = [x_stars[-1],L]
-            # for_animation_p[L] = [p_stars[-1],L]
+            for_animation_x[L] = [x_stars[-1],L]
+            for_animation_p[L] = [p_stars[-1],L]
         # Compute the acceptance ratio
         r = np.exp(-H(x_star, p_star,k, lam, d) + H(x[t], p,k,lam, d))
         # Draw W from a Uniform distribution
@@ -294,7 +294,7 @@ def RMHMC(L = 10000,
             errors.append(error)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
-    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, p_star #for_animation_x, for_animation_p
+    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, p_star , for_animation_x, for_animation_p
     
 
 
@@ -319,82 +319,82 @@ results = RMHMC(L = 10000,
             n = 1,
             tol = 1e-12,
             d = 1e-6)
-# x_anim = np.array(results[7])[:,1]
-# y_anim = np.array(results[7])[:,0]
-# x_anim_p = np.array(results[8])[:,1]
-# y_anim_p = np.array(results[8])[:,0]
-# stride = 20
-# x_anim = x_anim[::stride]
-# y_anim = y_anim[::stride]
-# x_anim_p = x_anim_p[::stride]
-# y_anim_p = y_anim_p[::stride]
+x_anim = np.array(results[7])[:,1]
+y_anim = np.array(results[7])[:,0]
+x_anim_p = np.array(results[8])[:,1]
+y_anim_p = np.array(results[8])[:,0]
+stride = 20
+x_anim = x_anim[::stride]
+y_anim = y_anim[::stride]
+x_anim_p = x_anim_p[::stride]
+y_anim_p = y_anim_p[::stride]
 
-# # Setting up the plot for the dynamics
-# fig, ax = plt.subplots(figsize=(10,10))
-# ax.set_xlim(min(x_anim)-1,max(x_anim)+1)
-# fig.supxlabel("Leapfrog step")
-# ax.set_ylim(min(y_anim)-0.0000001,max(y_anim)+0.0000001)
-# fig.supylabel(")Value")
-# ax.set_title("x dynamics")
-# trace, = ax.plot([],[])
-# current_plot, = ax.plot([],[]) 
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(min(x_anim)-1,max(x_anim)+1)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(min(y_anim)-0.0000001,max(y_anim)+0.0000001)
+fig.supylabel(")Value")
+ax.set_title("x dynamics")
+trace, = ax.plot([],[])
+current_plot, = ax.plot([],[]) 
 
-# # Setting up the plot for the dynamics
-# fig_p, ax_p = plt.subplots(figsize=(10,10))
-# ax_p.set_xlim(min(x_anim_p)-1,max(x_anim_p)+1)
-# fig_p.supxlabel("Leapfrog step")
-# ax_p.set_ylim(min(y_anim_p)-0.0000000001,max(y_anim_p)+0.000000001)
-# fig_p.supylabel("Value")
-# ax_p.set_title("p dynamics")
-# trace_p, = ax.plot([],[])
-# current_plot_p, = ax.plot([],[]) 
+# Setting up the plot for the dynamics
+fig_p, ax_p = plt.subplots(figsize=(10,10))
+ax_p.set_xlim(min(x_anim_p)-1,max(x_anim_p)+1)
+fig_p.supxlabel("Leapfrog step")
+ax_p.set_ylim(min(y_anim_p)-0.0000000001,max(y_anim_p)+0.000000001)
+fig_p.supylabel("Value")
+ax_p.set_title("p dynamics")
+trace_p, = ax.plot([],[])
+current_plot_p, = ax.plot([],[]) 
 
-# # Functions for the dynamics
-# def init():
-#     trace.set_data([],[])
-#     current_plot.set_data([],[])
-#     trace.set_color('blue')
-#     current_plot.set_color('green')
-#     trace_p.set_data([],[])
-#     current_plot_p.set_data([],[])
-#     trace_p.set_color('red')
-#     current_plot_p.set_color('green')
-#     return trace, current_plot, trace_p, current_plot_p
-# def update(frame):
-#     trace_x = x_anim[:frame+1]
-#     trace_y = y_anim[:frame+1]
-#     trace.set_data(trace_x, trace_y)
-#     current_x = [x_anim[frame]]
-#     current_y = [y_anim[frame]]
-#     current_plot.set_data(current_x, current_y)
-#     trace_x_p = x_anim_p[:frame+1]
-#     trace_y_p = y_anim_p[:frame+1]
-#     trace_p.set_data(trace_x_p, trace_y_p)
-#     current_x_p = [x_anim_p[frame]]
-#     current_y_p = [y_anim_p[frame]]
-#     current_plot_p.set_data(current_x_p, current_y_p)
-#     return trace, current_plot, trace_p, current_plot_p
-# def init_p():
-#     trace_p.set_data([],[])
-#     current_plot_p.set_data([],[])
-#     trace_p.set_color('red')
-#     current_plot_p.set_color('green')
-#     return trace_p, current_plot_p
-# def update_p(frame):
-#     trace_x_p = x_anim_p[:frame+1]
-#     trace_y_p = y_anim_p[:frame+1]
-#     trace_p.set_data(trace_x_p, trace_y_p)
-#     current_x_p = [x_anim_p[frame]]
-#     current_y_p = [y_anim_p[frame]]
-#     current_plot_p.set_data(current_x_p, current_y_p)
-#     return trace_p, current_plot_p
+# Functions for the dynamics
+def init():
+    trace.set_data([],[])
+    current_plot.set_data([],[])
+    trace.set_color('blue')
+    current_plot.set_color('green')
+    trace_p.set_data([],[])
+    current_plot_p.set_data([],[])
+    trace_p.set_color('red')
+    current_plot_p.set_color('green')
+    return trace, current_plot, trace_p, current_plot_p
+def update(frame):
+    trace_x = x_anim[:frame+1]
+    trace_y = y_anim[:frame+1]
+    trace.set_data(trace_x, trace_y)
+    current_x = [x_anim[frame]]
+    current_y = [y_anim[frame]]
+    current_plot.set_data(current_x, current_y)
+    trace_x_p = x_anim_p[:frame+1]
+    trace_y_p = y_anim_p[:frame+1]
+    trace_p.set_data(trace_x_p, trace_y_p)
+    current_x_p = [x_anim_p[frame]]
+    current_y_p = [y_anim_p[frame]]
+    current_plot_p.set_data(current_x_p, current_y_p)
+    return trace, current_plot, trace_p, current_plot_p
+def init_p():
+    trace_p.set_data([],[])
+    current_plot_p.set_data([],[])
+    trace_p.set_color('red')
+    current_plot_p.set_color('green')
+    return trace_p, current_plot_p
+def update_p(frame):
+    trace_x_p = x_anim_p[:frame+1]
+    trace_y_p = y_anim_p[:frame+1]
+    trace_p.set_data(trace_x_p, trace_y_p)
+    current_x_p = [x_anim_p[frame]]
+    current_y_p = [y_anim_p[frame]]
+    current_plot_p.set_data(current_x_p, current_y_p)
+    return trace_p, current_plot_p
 
-# animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=20, repeat=False)
-# fig.canvas.manager.window.attributes('-topmost', 1)
-# animate_x.save("animate_x.gif", writer = 'pillow')
-# # animate_p = ani.FuncAnimation(fig, update_p, frames=(len(x_anim_p)-1), init_func=init_p, blit=False, interval=50, repeat=False)
-# # fig.canvas.manager.window.attributes('-topmost', 1)
-# # animate_p.save("animate_p.gif", writer = 'pillow')
+animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=20, repeat=False)
+fig.canvas.manager.window.attributes('-topmost', 1)
+animate_x.save("animate_x.gif", writer = 'pillow')
+animate_p = ani.FuncAnimation(fig, update_p, frames=(len(x_anim_p)-1), init_func=init_p, blit=False, interval=50, repeat=False)
+fig.canvas.manager.window.attributes('-topmost', 1)
+animate_p.save("animate_p.gif", writer = 'pillow')
 
 # # Calculate gradient
 # L = 10
@@ -403,54 +403,54 @@ results = RMHMC(L = 10000,
 # print("Gradient of x ani =", x_grad )
 # print("Gradient of p ani =", p_grad)
 
-# Big test for algorithm
-eps_vals = [1e-5, 5e-5, 1e-4, 5e-4, 0.001, 0.005, 0.01, 0.05, 0.1,0.5, 1]
-L_vals = [100000, 50000, 10000,5000, 1000,500, 100,50, 10, 5, 1]
-eps_for_plotting = []
-L_for_plotting = []
-xs = []
-exp_xs = []
-exp_xs_KE =[]
-std_xs = []
-s = []
-for i in range(len(eps_vals)-1):
-    print("Running eps_vals[",i,"]")
-    for j in range(i+1, len(L_vals)):
-        print("Running L_vals[",j,"]")
-        eps_for_plotting.append(eps_vals[i])
-        L_for_plotting.append(L_vals[j])
-        updated_results = RMHMC(L = L_vals[j],
-            eps = eps_vals[i],
-            k = -1,
-            lam = 1,
-            n = 1,
-            tol = 1e-12,
-            d = 1e-6)
-        new_xs = updated_results[0]
-        new_p = updated_results[6]
-        xs.append(new_xs)
-        s.append(eps_vals[i]*L_vals[j])
-for k in range(len(xs)):
-    new_exp_x_val = mean_and_sd(xs[k], n=len(xs), k = -1, lam = 1, d=1e-6)[0]
-    exp_xs.append(new_exp_x_val)
-    exp_xs_KE.append(K(new_exp_x_val, new_p,k=-1, lam=1, d=1e-6))
-    std_xs.append(mean_and_sd(xs[k], n=len(xs), k = -1, lam = 1, d=1e-6)[1])
-fig = plt.figure()
-ax = plt.axes(projection='3d')
-ax.scatter(eps_for_plotting, L_for_plotting, exp_xs)
-plt.title("Epsilon, L, and Expected Value of x")
-plt.savefig("s_and_exp_xs.png")
-fig_2 = plt.figure()
-ax_2 = plt.axes(projection='3d')
-ax_2.scatter(eps_for_plotting, L_for_plotting, std_xs)
-plt.title("Epsilon, L, and Standard Deviation of x")
-plt.savefig("s_and_std.png")
-fig, ax = plt.subplots()  
-ax.scatter(s, exp_xs)
-ax.axhline(y=0, color='r', linestyle='--', linewidth=2)
-ax.set_xlabel("s")
-ax.set_ylabel("Expected x")
-ax.set_title("s against expected value of x")
-fig.savefig("s_exp_x.png")
-plt.close(fig)
+# # Big test for algorithm
+# eps_vals = [1e-5, 5e-5, 1e-4, 5e-4, 0.001, 0.005, 0.01, 0.05, 0.1,0.5, 1]
+# L_vals = [100000, 50000, 10000,5000, 1000,500, 100,50, 10, 5, 1]
+# eps_for_plotting = []
+# L_for_plotting = []
+# xs = []
+# exp_xs = []
+# exp_xs_KE =[]
+# std_xs = []
+# s = []
+# for i in range(len(eps_vals)-1):
+#     print("Running eps_vals[",i,"]")
+#     for j in range(i+1, len(L_vals)):
+#         print("Running L_vals[",j,"]")
+#         eps_for_plotting.append(eps_vals[i])
+#         L_for_plotting.append(L_vals[j])
+#         updated_results = RMHMC(L = L_vals[j],
+#             eps = eps_vals[i],
+#             k = -1,
+#             lam = 1,
+#             n = 1,
+#             tol = 1e-12,
+#             d = 1e-6)
+#         new_xs = updated_results[0]
+#         new_p = updated_results[6]
+#         xs.append(new_xs)
+#         s.append(eps_vals[i]*L_vals[j])
+# for k in range(len(xs)):
+#     new_exp_x_val = mean_and_sd(xs[k], n=len(xs), k = -1, lam = 1, d=1e-6)[0]
+#     exp_xs.append(new_exp_x_val)
+#     exp_xs_KE.append(K(new_exp_x_val, new_p,k=-1, lam=1, d=1e-6))
+#     std_xs.append(mean_and_sd(xs[k], n=len(xs), k = -1, lam = 1, d=1e-6)[1])
+# fig = plt.figure()
+# ax = plt.axes(projection='3d')
+# ax.scatter(eps_for_plotting, L_for_plotting, exp_xs)
+# plt.title("Epsilon, L, and Expected Value of x")
+# plt.savefig("s_and_exp_xs.png")
+# fig_2 = plt.figure()
+# ax_2 = plt.axes(projection='3d')
+# ax_2.scatter(eps_for_plotting, L_for_plotting, std_xs)
+# plt.title("Epsilon, L, and Standard Deviation of x")
+# plt.savefig("s_and_std.png")
+# fig, ax = plt.subplots()  
+# ax.scatter(s, exp_xs)
+# ax.axhline(y=0, color='r', linestyle='--', linewidth=2)
+# ax.set_xlabel("s")
+# ax.set_ylabel("Expected x")
+# ax.set_title("s against expected value of x")
+# fig.savefig("s_exp_x.png")
+# plt.close(fig)
 

@@ -1,11 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as ani
 import math
 
 # Define the variables to be used
-m = 1
-L = 10
-eps = 0.1
+m = 1.0
+L = 1000
+eps = 0.01
 k = 1
 lam = 1
 
@@ -55,22 +56,29 @@ def an_HMC_alg(n, L, eps):
     reversibility with each trajectory, so we also include this test.
     '''
     # Initialise the x values, KE values, errors, and the accepted values lists
-    x = [0]
+    x = [1]
     KE_vals = []
     errors = []
     exps_delH = []
     accepted = []
+    for_animation_x = np.zeros((L,2),dtype=float)
     # Start the loop to generate x values
     for t in range(n+1):
         # Draw the momentum from a Normal distribution
         p = np.random.normal(0, m**0.5)
+        print("p=", p)
         # Compute the first leapfrog step
         p_star = p - 0.5*eps*(k*x[t] + lam*x[t]**3)
+        print("p_star before leapfrog=",p_star)
         x_star = x[t] + eps*p_star/m
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L):
             p_star = p_star - eps*(k*x_star + lam*x_star**3)
+            #print("p_star in step", l, p_star)
             x_star = x_star + eps*p_star/m
+            print("x_star", x_star)
+            print("change for x", eps*p_star/m)
+            for_animation_x[l] = [x_star, l]
         # Compute the final step of the leapfrog method
         p_star = p_star - 0.5*eps*(k*x_star + lam*x_star**3)
         # Compute the acceptance ratio
@@ -100,7 +108,7 @@ def an_HMC_alg(n, L, eps):
         errors.append(error)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100    
-    return x, KE_vals, exps_delH, errors, acc_rat
+    return x, KE_vals, exps_delH, errors, acc_rat, for_animation_x
 
 # Find the expected value and standard deviation of x
 def mean_and_sd(x,m ,n):
@@ -113,14 +121,57 @@ def mean_and_sd(x,m ,n):
     stand_sd = m**0.5/(n-1)**0.5
     return np.mean(values_to_use), stand_sd*np.std(values_to_use)
 
-print("Expected x =", mean_and_sd(an_HMC_alg(100000,L,eps)[0],1,100000)[0],\
-      "Standardised standard deviation of x=", mean_and_sd(an_HMC_alg(100000,L,eps)[0],1,100000)[1],\
-       "Expected KE = ",mean_and_sd(an_HMC_alg(100000, L, eps)[1],1,100000)[0], \
-       "Standardised standard deviation of KE = ", mean_and_sd(an_HMC_alg(100000, L, eps)[1],1,100000)[1],\
-        "Expected exp(-delH)= " ,mean_and_sd(an_HMC_alg(100000,L,eps)[2],1,100000)[0],\
-        "Standardised standard deviation of exp(-delH) = ", mean_and_sd(an_HMC_alg(100000,L,eps)[2],1,100000)[1],\
-        "Expected error =", mean_and_sd(an_HMC_alg(100000, L, eps)[3],1,100000)[0],\
-        "Standardised standard deviation of error=", mean_and_sd(an_HMC_alg(100000,L,eps)[3],1,100000)[1],\
-        "Acceptance ratio =" ,an_HMC_alg(100000, L, eps)[4])
+# print("Expected x =", mean_and_sd(an_HMC_alg(100000,L,eps)[0],1,100000)[0],\
+#       "Standardised standard deviation of x=", mean_and_sd(an_HMC_alg(100000,L,eps)[0],1,100000)[1],\
+#        "Expected KE = ",mean_and_sd(an_HMC_alg(100000, L, eps)[1],1,100000)[0], \
+#        "Standardised standard deviation of KE = ", mean_and_sd(an_HMC_alg(100000, L, eps)[1],1,100000)[1],\
+#         "Expected exp(-delH)= " ,mean_and_sd(an_HMC_alg(100000,L,eps)[2],1,100000)[0],\
+#         "Standardised standard deviation of exp(-delH) = ", mean_and_sd(an_HMC_alg(100000,L,eps)[2],1,100000)[1],\
+#         "Expected error =", mean_and_sd(an_HMC_alg(100000, L, eps)[3],1,100000)[0],\
+#         "Standardised standard deviation of error=", mean_and_sd(an_HMC_alg(100000,L,eps)[3],1,100000)[1],\
+#         "Acceptance ratio =" ,an_HMC_alg(100000, L, eps)[4])
 
+# # Store the results from running the RMHMC alg
+results = an_HMC_alg(n=1, L= L, eps = eps)
+print("x_list out of alg", results[0])
+print("for_animation list", results[5])
+x_anim = np.array(results[5])[:,1]
+print("x_anim", x_anim)
+y_anim = np.array(results[5])[:,0]
+print("y_anim", y_anim)
+# stride = 20
+# x_anim = x_anim[::stride]
+# y_anim = y_anim[::stride]
+
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,9)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(-2,2)
+fig.supylabel("Value")
+ax.set_title("x dynamics")
+# plt.plot(x_anim, y_anim)
+# plt.show()
+trace, = ax.plot([],[])
+current_plot, = ax.plot([],[]) 
+
+# Functions for the dynamics
+def init():
+    trace.set_data([],[])
+    current_plot.set_data([],[])
+    trace.set_color('blue')
+    current_plot.set_color('green')
+    return trace, current_plot
+def update(frame):
+    trace_x = x_anim[:frame+1]
+    trace_y = y_anim[:frame+1]
+    trace.set_data(trace_x, trace_y)
+    current_x = [x_anim[frame]]
+    current_y = [y_anim[frame]]
+    current_plot.set_data(current_x, current_y)
+    return trace, current_plot
+
+animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=20, repeat=False)
+fig.canvas.manager.window.attributes('-topmost', 1)
+animate_x.save("HMC_animate_x.gif", writer = 'pillow')
 
