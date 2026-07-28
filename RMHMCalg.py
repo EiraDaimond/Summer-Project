@@ -4,8 +4,8 @@ import math
 # import matplotlib.animation as ani
 
 # Define the variables to be used
-L = 10000
-eps = 1e-5
+L = 100000
+eps = 1e-8
 k = -1
 lam = 1
 n = 10
@@ -126,6 +126,9 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                         p_guess = p_star  
             #()
         #("Moving on from 1st step with p_star", p_star)  
+        if math.isnan(p_star):
+            print("INSTABILITY in p")
+            break
         p_stars.append(p_star)
         # x convergence
         x_guess = x[t]
@@ -152,6 +155,9 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                         x_guess = x_star
             #()
         #("Moving on from 1st step with x_star", x_star)
+        if math.isnan(x_star):
+                    print("INSTABILITY in x")
+                    break
         x_stars.append(x_star)
         V_x.append(an_V(x_star,k,lam))
         #("CODE WORKS UP TO HERE")
@@ -193,6 +199,9 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                             p_guess = p_star
                 print()
             #("Moving on from middle step iter [",l,"] with p_star", p_star)
+            if math.isnan(p_star):
+                        print("INSTABILITY in p")
+                        break
             p_stars.append(p_star)
             #()
             #("STARTING x convergence")
@@ -224,6 +233,9 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                             x_guess = x_star
                 #()
             #("Moving on from middle step iter[",l,"] with x_star", x_star)
+            if math.isnan(x_star):
+                        print("INSTABILITY in x")
+                        break
             x_stars.append(x_star)
             V_x.append(an_V(x_star,k,lam))
             # animate = ani.FuncAnimation(fig, update(x_stars, V_x, l), frames=L, init_func=init, blit=True, interval=50, repeat=False)
@@ -256,6 +268,10 @@ def RMHMC(L=None,eps=None,k=None,lam=None,tol=None,n=None, d=None):
                         break
                     else:
                         p_guess = p_star
+            if math.isnan(p_star):
+                print("INSTABILITY in p")
+                break
+            p_stars.append(p_star)
             #()
         # Compute the acceptance ratio
         r = np.exp(-H(x_star, p_star,d) + H(x[t], p,d))

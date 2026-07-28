@@ -4,6 +4,44 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as ani
 from mpl_toolkits.mplot3d import Axes3D
 
+ # Define the anharmonic potential term
+def an_V(x,k,lam):
+    if k >0:
+        an_V = 0.25*lam*x**4 + 0.5*lam*k*x**2
+    else:
+        an_V = 0.25*lam*x**4 - 0.5*lam*k*x**2
+    return an_V
+
+# Define the metric tensor (second derivative of the potential term)
+def G(x,k,lam):
+    return k + 3*lam*x**2
+        
+# Define M (including delta).... to be used to avoid division by 0 errors
+def M(x,k, lam, d):
+    return np.sqrt(abs(G(x,k,lam)**2+d**2))
+
+# Define the kinetic energy term (include correction term)
+def K(x,p, k, lam, d):
+    return 0.5*p*M(x,k, lam,d)*p + 0.5*np.log(np.abs(M(x,k,lam, d)))
+
+# Define the Hamiltonian
+def H(x, p, k,lam,d):
+    return an_V(x,k,lam) + K(p, x,k, lam, d) 
+
+# Find the expected value of x and corresponding standardised standard deviation
+def mean_and_sd(list, n,k, lam, d):
+    '''
+    Given a list of values, compute the expected value (with burn-in removed), 
+    and corresponding standardised standar deviation.
+    '''
+    length = len(list)
+    values_to_use = list[math.ceil(length/10):]
+    # Initialise the sd_list
+    sd_list = [0]*(len(values_to_use))
+    for i in range(len(values_to_use)):
+        sd_list[i] = M(values_to_use[i],k, lam, d)
+    return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
+
 def RMHMC(L = 10000,
             eps = 1e-8,
             k = -1,
@@ -16,29 +54,7 @@ def RMHMC(L = 10000,
     Mass is non-constant and is instead represented by the metric tensor which I 
     shall denote G. In the 1D case, this is just a scalar. 
     ''' 
-    # Define the anharmonic potential term
-    def an_V(x,k,lam):
-        if k >0:
-            an_V = 0.25*lam*x**4 + 0.5*lam*k*x**2
-        else:
-            an_V = 0.25*lam*x**4 - 0.5*lam*k*x**2
-        return an_V
-
-    # Define the metric tensor (second derivative of the potential term)
-    def G(x,k,lam):
-        return k + 3*lam*x**2
-        
-    # Define M (including delta).... to be used to avoid division by 0 errors
-    def M(x, d):
-        return np.sqrt(abs(G(x,k,lam)**2+d**2))
-
-    # Define the kinetic energy term (include correction term)
-    def K(p, x,d):
-        return 0.5*p*M(x,d)*p + 0.5*np.log(np.abs(M(x,d)))
-
-    # Define the Hamiltonian
-    def H(x, p,d):
-        return an_V(x,k,lam) + K(p, x, d) 
+   
     
     # Run the RMHMC algorithm
     '''
@@ -62,7 +78,7 @@ def RMHMC(L = 10000,
         # Initialise the V(x) lists
         V_x = []
         # Draw the momentum from a Normal distribution
-        p = np.random.normal(0, M(x[t], d))
+        p = np.random.normal(0, M(x[t],k, lam, d))
         # Provide an initial guess value for p, initialise p_star
         p_guess = p 
         p_star = 0
@@ -76,7 +92,7 @@ def RMHMC(L = 10000,
                  (k*x[t] + lam*x[t]**3 \
                      + 0.5*p_guess**2*(-6*lam*x[t]) \
                 + 0.5*abs(-6*lam*x[t])\
-                     /M(x[t],d))
+                     /M(x[t],k, lam, d))
             if p_star > 1e14:
                 #("BROKE p_star too big")
                 break
@@ -106,7 +122,7 @@ def RMHMC(L = 10000,
             count = count + 1
             #("1st step x_star is :", x_star)
             x_star = x[t] + 0.5*eps\
-                            *(p_star*M(x[t],d)+p_star*M(x_guess,d))
+                            *(p_star*M(x[t],k,lam, d)+p_star*M(x_guess,k, lam,d))
             #("x_star=", x_star)
             if x_star > 1e14:
                 #("BROKE x_star too big")
@@ -147,7 +163,7 @@ def RMHMC(L = 10000,
                 p_star = p_current - eps\
                                         *(k*x_star + lam*x_star**3\
                                              + 0.5*p_guess**2*(-6*lam*x_star)\
-                                             + 0.5*abs(-6*lam*x_star)/M(x_star,d))
+                                             + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam, d))
                 #("Calculated p_star =", p_star)
                 #("p_guess is", p_guess)
                 #("Difference in ps", abs(p_star - p_guess))
@@ -182,7 +198,7 @@ def RMHMC(L = 10000,
                 #("Middle step iter[",l,"] x_star is :", x_star)
                 #("Using p_star", p_star)
                 x_star = x_current + 0.5*eps\
-                            *(p_star*M(x_current,d)+p_star*M(x_guess,d))
+                            *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d))
                 #("x_star=", x_star)
                 if x_star > 1e14:
                     print("BROKE x_star too big")
@@ -215,7 +231,7 @@ def RMHMC(L = 10000,
             count = count+1
             p_star = p_current - 0.5*eps\
                                     *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
-                                        + 0.5*abs(-6*lam*x_star)/M(x_star,d))
+                                        + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
             #("p_star is :", p_star)
             #("p_guess is", p_guess)
             #("Difference in ps:", abs(p_star - p_guess))
@@ -235,7 +251,7 @@ def RMHMC(L = 10000,
             # for_animation_x[L] = [x_stars[-1],L]
             # for_animation_p[L] = [p_stars[-1],L]
         # Compute the acceptance ratio
-        r = np.exp(-H(x_star, p_star,d) + H(x[t], p,d))
+        r = np.exp(-H(x_star, p_star,k, lam, d) + H(x[t], p,k,lam, d))
         # Draw W from a Uniform distribution
         W = np.random.uniform(0, 1)            
         # Carry out the Metropolis test
@@ -246,7 +262,7 @@ def RMHMC(L = 10000,
             x.append(x[t])
         #print("x looks like:", x)
         # Compute the KE and append to list
-        KE = K(x[-1],p_star,d)
+        KE = K(x[-1],p_star,k,lam,d)
         KE_vals.append(KE)
         #print("KE_vals looks like:", KE_vals)
         # Compute the PE and append to list
@@ -254,45 +270,33 @@ def RMHMC(L = 10000,
         PE_vals.append(PE)
         #print("PE_vals looks like:", PE_vals)
         # Compute the exp(-delH)
-        exp_minus_del_H_ = np.exp(H(x[-1],p_star,d) - H(x[t], p,d))
+        exp_minus_del_H_ = np.exp(H(x[-1],p_star,k,lam,d) - H(x[t], p,k,lam,d))
         exps_delH.append(exp_minus_del_H_)
         #print("exps_minus_delH looks like:", exps_delH)
         # Check reversibility
         p_star = p_star + 0.5*eps\
                             *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
-                                + 0.5*abs(-6*lam*x_star)/M(x_star,d))
+                                + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
         x_star = x_star - 0.5*eps\
-                            *(p_star*M(x_current,d)+p_star*M(x_guess,d))
+                            *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d))
         for l in range(1, L):
             #print("On reversibility check, iter", l)
             p_star = p_star + eps\
                                 *(k*x_star + lam*x_star**3\
                                     + 0.5*p_guess**2*(-6*lam*x_star)\
-                                    + 0.5*abs(-6*lam*x_star)/M(x_star,d))
+                                    + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
             x_star = x_star - 0.5*eps\
-                            *(p_star*M(x[t],d)+p_star*M(x_guess,d))
+                            *(p_star*M(x[t],k,lam,d)+p_star*M(x_guess,k,lam,d))
             p_backwards = p_star + 0.5*eps\
                             *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
-                                + 0.5*abs(-6*lam*x_star)/M(x_star,d))
+                                + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
             error = (p_backwards - p)
             errors.append(error)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
-    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, #for_animation_x, for_animation_p
+    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, p_star #for_animation_x, for_animation_p
     
-# Find the expected value of x and corresponding standardised standard deviation
-def mean_and_sd(list, n, d):
-    '''
-    Given a list of values, compute the expected value (with burn-in removed), 
-    and corresponding standardised standar deviation.
-    '''
-    length = len(list)
-    values_to_use = list[math.ceil(length/10):]
-    # Initialise the sd_list
-    sd_list = [0]*(len(values_to_use))
-    for i in range(len(values_to_use)):
-        sd_list[i] = M(values_to_use[i], d)
-    return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
+
 
 #print(RMHMC(L,eps, k,lam,tol,n,d)[0])
 # print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],\
@@ -315,10 +319,10 @@ results = RMHMC(L = 10000,
             n = 1,
             tol = 1e-12,
             d = 1e-6)
-# x_anim = np.array(results[6])[:,1]
-# y_anim = np.array(results[6])[:,0]
-# x_anim_p = np.array(results[7])[:,1]
-# y_anim_p = np.array(results[7])[:,0]
+# x_anim = np.array(results[7])[:,1]
+# y_anim = np.array(results[7])[:,0]
+# x_anim_p = np.array(results[8])[:,1]
+# y_anim_p = np.array(results[8])[:,0]
 # stride = 20
 # x_anim = x_anim[::stride]
 # y_anim = y_anim[::stride]
@@ -399,38 +403,60 @@ results = RMHMC(L = 10000,
 # print("Gradient of x ani =", x_grad )
 # print("Gradient of p ani =", p_grad)
 
-# Plot s against exp_x error
+# Big test for algorithm
 eps_vals = [1e-5,1e-4,0.001,0.01,0.1,1]
 L_vals = [100000, 10000, 1000, 100, 10, 1]
+eps_for_plotting = [1e-5, 1e-5, 1e-5, 1e-5, 1e-5,
+                    1e-4, 1e-4, 1e-4, 1e-4,
+                    1e-3, 1e-3, 1e-3,
+                    0.01, 0.01,
+                    0.1]
+L_for_plotting = [10000, 1000, 100, 10 ,1, 
+                  1000, 100, 10, 1,
+                  100, 10 , 1,
+                  10,1,
+                  1]
 xs = []
-for i in range(len(eps_vals)):
+exp_xs = []
+exp_xs_KE =[]
+std_xs = []
+s = []
+for i in range(len(eps_vals)-1):
     print("Running eps_vals[",i,"]")
-    for j in range(1,len(L_vals)):
+    for j in range(i+1, len(L_vals)):
         print("Running L_vals[",j,"]")
-        result = RMHMC(L = L_vals[j],
+        updated_results = RMHMC(L = L_vals[j],
             eps = eps_vals[i],
             k = -1,
             lam = 1,
             n = 1,
             tol = 1e-12,
-            d = 1e-6)[0]
-        xs.append(result)
-exp_xs = mean_and_sd(xs, n=1, d=1e-6)
-plot = np.zeros(len(exp_xs)+1)
-for k in range(len(plot)):
-    plot[k] = abs(exp_xs[k] - xs[k])
+            d = 1e-6)
+        new_xs = updated_results[0]
+        new_p = updated_results[6]
+        xs.append(new_xs)
+        s.append(eps_vals[i]*L_vals[j])
+for k in range(len(xs)):
+    new_exp_x_val = mean_and_sd(xs[k], n=len(xs), k = -1, lam = 1, d=1e-6)[0]
+    exp_xs.append(new_exp_x_val)
+    exp_xs_KE.append(K(new_exp_x_val, new_p,k=-1, lam=1, d=1e-6))
+    std_xs.append(mean_and_sd(xs[k], n=len(xs), k = -1, lam = 1, d=1e-6)[1])
 fig = plt.figure()
 ax = plt.axes(projection='3d')
-ax.plot(eps_vals, L_vals, plot)
-plt.title("Epsilon, L, and Acceptance Ratio")
-plt.save("s_and_acc_rat.png")
+ax.scatter(eps_for_plotting, L_for_plotting, exp_xs)
+plt.title("Epsilon, L, and Expected Value of x")
+plt.savefig("s_and_exp_xs.png")
+fig_2 = plt.figure()
+ax_2 = plt.axes(projection='3d')
+ax_2.scatter(eps_for_plotting, L_for_plotting, std_xs)
+plt.title("Epsilon, L, and Standard Deviation of x")
+plt.savefig("s_and_std.png")
+fig, ax = plt.subplots()  
+ax.scatter(s, exp_xs)
+ax.axhline(y=0, color='r', linestyle='--', linewidth=2)
+ax.set_xlabel("s")
+ax.set_ylabel("Expected x")
+ax.set_title("s against expected value of x")
+fig.savefig("s_exp_x.png")
+plt.close(fig)
 
-# # Checking KE
-# plt.plot(results[0][0:], results[1])
-# plt.xlabel("x")
-# plt.ylabel("KE")
-# plt.title("KE test")
-# plt.show()
-
-'''COMMENTS
-- '''
