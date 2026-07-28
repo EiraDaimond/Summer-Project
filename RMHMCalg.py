@@ -5,8 +5,8 @@ import math
 
 # Define the variables to be used
 L = 10000
-eps = 1e-8
-k = 1
+eps = 1e-5
+k = -1
 lam = 1
 n = 10
 tol = 1e-6
@@ -15,7 +15,7 @@ d = 1e-6
 # Define the anharmonic potential term
 def an_V(x,k,lam):
     if k >0:
-        an_V = 0.25*lam*x**4 + 0.5*lam*k*x**2
+        an_V = 0.25*lam*x**4 + 0.5*lam*k*x**2    
     else:
         an_V = 0.25*lam*x**4 - 0.5*lam*k*x**2
     return an_V
@@ -336,3 +336,12 @@ print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],
         "Expected error =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[0],\
         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
+
+'''COMMENTS:
+- Works for
+ L = 10000, eps = 1e-8
+ L = 10000, eps = 1e-5
+- NOT for 
+L = 10000, eps = 1e-4
+L = 100000, eps = 1e-5
+CONCLUSION: s < 1 seems to work?'''
