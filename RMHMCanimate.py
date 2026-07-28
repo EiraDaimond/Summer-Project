@@ -404,18 +404,10 @@ results = RMHMC(L = 10000,
 # print("Gradient of p ani =", p_grad)
 
 # Big test for algorithm
-eps_vals = [1e-5,1e-4,0.001,0.01,0.1,1]
-L_vals = [100000, 10000, 1000, 100, 10, 1]
-eps_for_plotting = [1e-5, 1e-5, 1e-5, 1e-5, 1e-5,
-                    1e-4, 1e-4, 1e-4, 1e-4,
-                    1e-3, 1e-3, 1e-3,
-                    0.01, 0.01,
-                    0.1]
-L_for_plotting = [10000, 1000, 100, 10 ,1, 
-                  1000, 100, 10, 1,
-                  100, 10 , 1,
-                  10,1,
-                  1]
+eps_vals = [1e-5, 5e-5, 1e-4, 5e-4, 0.001, 0.005, 0.01, 0.05, 0.1,0.5, 1]
+L_vals = [100000, 50000, 10000,5000, 1000,500, 100,50, 10, 5, 1]
+eps_for_plotting = []
+L_for_plotting = []
 xs = []
 exp_xs = []
 exp_xs_KE =[]
@@ -425,6 +417,8 @@ for i in range(len(eps_vals)-1):
     print("Running eps_vals[",i,"]")
     for j in range(i+1, len(L_vals)):
         print("Running L_vals[",j,"]")
+        eps_for_plotting.append(eps_vals[i])
+        L_for_plotting.append(L_vals[j])
         updated_results = RMHMC(L = L_vals[j],
             eps = eps_vals[i],
             k = -1,
