@@ -323,31 +323,31 @@ x_anim = np.array(results[7])[:,1]
 y_anim = np.array(results[7])[:,0]
 x_anim_p = np.array(results[8])[:,1]
 y_anim_p = np.array(results[8])[:,0]
-stride = 20
-x_anim = x_anim[::stride]
-y_anim = y_anim[::stride]
-x_anim_p = x_anim_p[::stride]
-y_anim_p = y_anim_p[::stride]
+# stride = 20
+# x_anim = x_anim[::stride]
+# y_anim = y_anim[::stride]
+# x_anim_p = x_anim_p[::stride]
+# y_anim_p = y_anim_p[::stride]
 
 # Setting up the plot for the dynamics
 fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(min(x_anim)-1,max(x_anim)+1)
+ax.set_xlim(0,10000)
 fig.supxlabel("Leapfrog step")
-ax.set_ylim(min(y_anim)-0.0000001,max(y_anim)+0.0000001)
+ax.set_ylim(-2,2)
 fig.supylabel(")Value")
 ax.set_title("x dynamics")
 trace, = ax.plot([],[])
 current_plot, = ax.plot([],[]) 
 
-# Setting up the plot for the dynamics
-fig_p, ax_p = plt.subplots(figsize=(10,10))
-ax_p.set_xlim(min(x_anim_p)-1,max(x_anim_p)+1)
-fig_p.supxlabel("Leapfrog step")
-ax_p.set_ylim(min(y_anim_p)-0.0000000001,max(y_anim_p)+0.000000001)
-fig_p.supylabel("Value")
-ax_p.set_title("p dynamics")
-trace_p, = ax.plot([],[])
-current_plot_p, = ax.plot([],[]) 
+# # Setting up the plot for the dynamics
+# fig_p, ax_p = plt.subplots(figsize=(10,10))
+# ax_p.set_xlim(min(x_anim_p)-1,max(x_anim_p)+1)
+# fig_p.supxlabel("Leapfrog step")
+# ax_p.set_ylim(min(y_anim_p)-0.0000000001,max(y_anim_p)+0.000000001)
+# fig_p.supylabel("Value")
+# ax_p.set_title("p dynamics")
+# trace_p, = ax.plot([],[])
+# current_plot_p, = ax.plot([],[]) 
 
 # Functions for the dynamics
 def init():
@@ -355,11 +355,11 @@ def init():
     current_plot.set_data([],[])
     trace.set_color('blue')
     current_plot.set_color('green')
-    trace_p.set_data([],[])
-    current_plot_p.set_data([],[])
-    trace_p.set_color('red')
-    current_plot_p.set_color('green')
-    return trace, current_plot, trace_p, current_plot_p
+    # trace_p.set_data([],[])
+    # current_plot_p.set_data([],[])
+    # trace_p.set_color('red')
+    # current_plot_p.set_color('green')
+    return trace, current_plot #trace_p, current_plot_p
 def update(frame):
     trace_x = x_anim[:frame+1]
     trace_y = y_anim[:frame+1]
@@ -367,34 +367,34 @@ def update(frame):
     current_x = [x_anim[frame]]
     current_y = [y_anim[frame]]
     current_plot.set_data(current_x, current_y)
-    trace_x_p = x_anim_p[:frame+1]
-    trace_y_p = y_anim_p[:frame+1]
-    trace_p.set_data(trace_x_p, trace_y_p)
-    current_x_p = [x_anim_p[frame]]
-    current_y_p = [y_anim_p[frame]]
-    current_plot_p.set_data(current_x_p, current_y_p)
-    return trace, current_plot, trace_p, current_plot_p
-def init_p():
-    trace_p.set_data([],[])
-    current_plot_p.set_data([],[])
-    trace_p.set_color('red')
-    current_plot_p.set_color('green')
-    return trace_p, current_plot_p
-def update_p(frame):
-    trace_x_p = x_anim_p[:frame+1]
-    trace_y_p = y_anim_p[:frame+1]
-    trace_p.set_data(trace_x_p, trace_y_p)
-    current_x_p = [x_anim_p[frame]]
-    current_y_p = [y_anim_p[frame]]
-    current_plot_p.set_data(current_x_p, current_y_p)
-    return trace_p, current_plot_p
+    # trace_x_p = x_anim_p[:frame+1]
+    # trace_y_p = y_anim_p[:frame+1]
+    # trace_p.set_data(trace_x_p, trace_y_p)
+    # current_x_p = [x_anim_p[frame]]
+    # current_y_p = [y_anim_p[frame]]
+    # current_plot_p.set_data(current_x_p, current_y_p)
+    return trace, current_plot#, trace_p, current_plot_p
+# def init_p():
+#     trace_p.set_data([],[])
+#     current_plot_p.set_data([],[])
+#     trace_p.set_color('red')
+#     current_plot_p.set_color('green')
+#     return trace_p, current_plot_p
+# def update_p(frame):
+#     trace_x_p = x_anim_p[:frame+1]
+#     trace_y_p = y_anim_p[:frame+1]
+#     trace_p.set_data(trace_x_p, trace_y_p)
+#     current_x_p = [x_anim_p[frame]]
+#     current_y_p = [y_anim_p[frame]]
+#     current_plot_p.set_data(current_x_p, current_y_p)
+#     return trace_p, current_plot_p
 
 animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=20, repeat=False)
 fig.canvas.manager.window.attributes('-topmost', 1)
 animate_x.save("animate_x.gif", writer = 'pillow')
-animate_p = ani.FuncAnimation(fig, update_p, frames=(len(x_anim_p)-1), init_func=init_p, blit=False, interval=50, repeat=False)
-fig.canvas.manager.window.attributes('-topmost', 1)
-animate_p.save("animate_p.gif", writer = 'pillow')
+# animate_p = ani.FuncAnimation(fig, update_p, frames=(len(x_anim_p)-1), init_func=init_p, blit=False, interval=50, repeat=False)
+# fig.canvas.manager.window.attributes('-topmost', 1)
+# animate_p.save("animate_p.gif", writer = 'pillow')
 
 # # Calculate gradient
 # L = 10
