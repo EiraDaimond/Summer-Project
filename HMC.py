@@ -5,8 +5,8 @@ import matplotlib.animation as ani
 
 # Define the variables to be used
 m = 1 
-L = 1000000
-eps = 0.000001
+L = 100
+eps = 0.01
 k = 1
 
 # Define the potental
@@ -71,16 +71,22 @@ def HMC(n,L,eps):
         print("On iteration", t)
         # Draw the momentum from a Normal distribution
         p = np.random.normal(0,m**0.5)
+        print("p=",p)
         # Carry out step 1 of the leapfrog method
         p_star = p - 0.5*eps*k*x[t]
+        # print("p_star is=", p_star)
         x_star = x[t] + eps*p_star/m
         for_animation_x[0] = x_star, 0
+        # print("Change is", eps*p_star/m)
+        # print("x_star is=", x_star)
         # Compute (x*,p*) using L leapfrog steps of size eps
         for l in range(1, L):
-            print("On leapfrog step", l)
+            #print("On leapfrog step", l)
             p_star = p_star - eps*k*x_star
             x_star = x_star + eps*p_star/m
             for_animation_x[l] = x_star, l
+        #     print("Change is", eps*p_star/m)
+        # print("x_star=", x_star)
         # Carry out the final step of the leapfrog method
         p_star = p_star - 0.5*eps*k*x_star
         # Compute the acceptance ratio
@@ -110,6 +116,7 @@ def HMC(n,L,eps):
         # p_backwards = p_star + 0.5*eps*k*x_star
         # error = (p_backwards - p)
         # errors.append(error)
+        # print(x)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
     return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, for_animation_x
@@ -137,9 +144,11 @@ def HMC(n,L,eps):
 #         "Acceptance ratio =" ,HMC(100000, L, eps)[5])
 
 # # Store the results from running the RMHMC alg
-results = HMC(n=1, L= L, eps = eps)
-x_anim = np.array(results[6][len(L)*0.1:])[:,1]
-y_anim = np.array(results[6][len(L)*0.1:])[:,0]
+results = HMC(n=10000, L= L, eps = eps)
+x_anim_raw = np.array(results[6][:,1])
+x_anim = x_anim_raw[math.ceil(len(x_anim_raw)*0.1):]
+y_anim_raw = np.array(results[6][:,0])
+y_anim = y_anim_raw[math.ceil(len(y_anim_raw)*0.1):]
 # print("x_anim=", x_anim)
 # print("y_anim=", y_anim)
 # stride = 20
@@ -153,8 +162,8 @@ fig.supxlabel("Leapfrog step")
 ax.set_ylim(-2,2)
 fig.supylabel("Value")
 ax.set_title("x dynamics")
-ax.plot(x_anim, y_anim)
-fig.savefig("HMC_ani_set.png")
+# ax.scatter(x_anim, y_anim)
+# fig.savefig("HMC_ani_set.png")
 trace, = ax.plot([],[])
 current_plot, = ax.plot([],[]) 
 
@@ -178,17 +187,19 @@ animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, b
 fig.canvas.manager.window.attributes('-topmost', 1)
 animate_x.save("HMC_ani.gif", writer = 'pillow')
 
-# Plot the potential
-fig, ax = plt.subplots(figsize=(10,10))
-x_vals = results[0][len(L)*0.1:]
-V_vals = []
-for i in range(len(x_vals)):
-    V_vals.append(V(x_vals[i],k))
-ax.set_xlim(-2,2)
-fig.supxlabel("x")
-ax.set_ylim(-2,2)
-fig.supylabel("V(x)")
-ax.set_title("Harmonic potential from Metropolis")
-ax.plot(x_vals, V_vals )
-fig.savefig("x_HMC.png")
-plt.closefig()
+# # Plot the potential
+# fig, ax = plt.subplots(figsize=(10,10))
+# x_vals_raw = results[0]
+# x_vals = x_vals_raw[math.ceil(len(x_vals_raw)*0.1):]
+# V_vals_raw = []
+# for i in range(len(x_vals_raw)):
+#     V_vals_raw.append(V(x_vals_raw[i],k))
+# V_vals = V_vals_raw[math.ceil(len(V_vals_raw)*0.1):]
+# ax.set_xlim(-2,2)
+# fig.supxlabel("x")
+# ax.set_ylim(-2,2)
+# fig.supylabel("V(x)")
+# ax.set_title("Harmonic potential from Metropolis")
+# ax.scatter(x_vals, V_vals)
+# fig.savefig("x_HMC.png")
+

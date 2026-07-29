@@ -5,22 +5,8 @@ import math
 
 # Define the variables to be used
 m = 1.0
-L = 1000
+L = 10000
 eps = 0.001
-k = 1
-lam = 1
-
-# Define the anharmonic potential term
-def an_V(x,k,lam):
-    if k >0:
-        an_V = 0.25*lam**2*x**4 + 0.5*lam*k*x**2
-    else:
-        an_V = 0.25*lam**2*x**4 - 0.5*lam*k*x**2
-    return an_V
-
-# Define the anharmonic Hamiltonian
-def an_H(x, p,m):
-    return an_V(x,k,lam) + 0.5*p**2/m
   
 # def test_normal_p(n,m):
 #     '''
@@ -47,7 +33,7 @@ def an_H(x, p,m):
 # print(test_normal_p(10,1))
     
 # Run the HMC algorithm
-def an_HMC_alg(n, L, eps):
+def an_HMC_alg(k, lam, n, L, eps):
     '''
     -Carry out the HMC algorithm using the leafrog method to generate x values. 
     -Simultaenously compute and store KE, PE, exp(-delH).
@@ -55,6 +41,16 @@ def an_HMC_alg(n, L, eps):
     -Another way to check that the algorithm is working correctly is to check 
     reversibility with each trajectory, so we also include this test.
     '''
+        
+    # Define the anharmonic potential term
+    def an_V(x,k,lam):
+        an_V = 0.5*k*x**2 + 0.25**lam*x**4
+        return an_V
+
+    # Define the anharmonic Hamiltonian
+    def an_H(x, p,m):
+        return an_V(x,k,lam) + 0.5*p**2/m
+    
     # Initialise the x values, KE values, errors, and the accepted values lists
     x = [1]
     KE_vals = []
@@ -64,20 +60,21 @@ def an_HMC_alg(n, L, eps):
     for_animation_x = np.zeros((L,2),dtype=float)
     # Start the loop to generate x values
     for t in range(n+1):
+        print("On iteration", t)
         # Draw the momentum from a Normal distribution
         p = np.random.normal(0, m**0.5)
-        print("p=", p)
+        # print("p=", p)
         # Compute the first leapfrog step
         p_star = p - 0.5*eps*(k*x[t] + lam*x[t]**3)
-        print("p_star before leapfrog=",p_star)
+        # print("p_star before leapfrog=",p_star)
         x_star = x[t] + eps*p_star/m
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L):
             p_star = p_star - eps*(k*x_star + lam*x_star**3)
             #print("p_star in step", l, p_star)
             x_star = x_star + eps*p_star/m
-            print("x_star", x_star)
-            print("change for x", eps*p_star/m)
+            # print("x_star", x_star)
+            # print("change for x", eps*p_star/m)
             for_animation_x[l] = [x_star, l]
         # Compute the final step of the leapfrog method
         p_star = p_star - 0.5*eps*(k*x_star + lam*x_star**3)
@@ -108,18 +105,35 @@ def an_HMC_alg(n, L, eps):
         errors.append(error)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100    
+
+    # # Plot the potential
+    # fig, ax = plt.subplots(figsize=(10,10))
+    # x_wbi = x[math.ceil(len(x)*0.1):]
+    # V_vals_raw = []
+    # for i in range(len(x)):
+    #     V_vals_raw.append(an_V(x[i],k,lam))
+    # V_wbi = V_vals_raw[math.ceil(len(V_vals_raw)*0.1):]
+    # ax.set_xlim(-2,2)
+    # fig.supxlabel("x")
+    # ax.set_ylim(-2,2)
+    # fig.supylabel("V(x)")
+    # ax.set_title("Anharmonic potential from Metropolis")
+    # ax.scatter(x_wbi, V_wbi )
+    # fig.savefig("x_anHMC.png")
     return x, KE_vals, exps_delH, errors, acc_rat, for_animation_x
 
+# print(an_HMC_alg(1,1,1000,L, eps))
+# print(an_HMC_alg(-1, 1, 1000, L, eps))
 # Find the expected value and standard deviation of x
-def mean_and_sd(x,m ,n):
-    '''
-    Given a list of x values, compute the expected value
-      and standardised standard deviation (rejecting burn-in).
-    '''
-    length = len(x)
-    values_to_use = x[math.ceil(length/10):]
-    stand_sd = m**0.5/(n-1)**0.5
-    return np.mean(values_to_use), stand_sd*np.std(values_to_use)
+# def mean_and_sd(x,m ,n):
+#     '''
+#     Given a list of x values, compute the expected value
+#       and standardised standard deviation (rejecting burn-in).
+#     '''
+#     length = len(x)
+#     values_to_use = x[math.ceil(length/10):]
+#     stand_sd = m**0.5/(n-1)**0.5
+#     return np.mean(values_to_use), stand_sd*np.std(values_to_use)
 
 # print("Expected x =", mean_and_sd(an_HMC_alg(100000,L,eps)[0],1,100000)[0],\
 #       "Standardised standard deviation of x=", mean_and_sd(an_HMC_alg(100000,L,eps)[0],1,100000)[1],\
@@ -132,61 +146,77 @@ def mean_and_sd(x,m ,n):
 #         "Acceptance ratio =" ,an_HMC_alg(100000, L, eps)[4])
 
 # # Store the results from running the RMHMC alg
-results = an_HMC_alg(n=1, L= L, eps = eps)
-print("x_list out of alg", results[0][len(L)*0.1:])
-print("for_animation list", results[5][len(L)*0.1:])
-x_anim = np.array(results[5])[:,1]
-print("x_anim", x_anim)
-y_anim = np.array(results[5])[:,0]
-print("y_anim", y_anim)
+results_1 = an_HMC_alg(1, 1, n=100, L= L, eps = eps)
+x_anim_raw_1 = np.array(results_1[5])[:,1]
+x_anim_1 = x_anim_raw_1[math.ceil(len(x_anim_raw_1)*0.1):]
+# print("x_anim", x_anim)
+y_anim_raw_1 = np.array(results_1[5])[:,0]
+y_anim_1 = y_anim_raw_1[math.ceil(len(y_anim_raw_1)*0.1):]
+results_2 = an_HMC_alg(-1, 1, n=100, L= L, eps = eps)
+x_anim_raw_2 = np.array(results_2[5])[:,1]
+x_anim_2 = x_anim_raw_2[math.ceil(len(x_anim_raw_2)*0.1):]
+# print("x_anim", x_anim)
+y_anim_raw_2 = np.array(results_2[5])[:,0]
+y_anim_2 = y_anim_raw_2[math.ceil(len(y_anim_raw_2)*0.1):]
+# # print("y_anim", y_anim)
 # stride = 20
 # x_anim = x_anim[::stride]
 # y_anim = y_anim[::stride]
 
-# # Setting up the plot for the dynamics
-# fig, ax = plt.subplots(figsize=(10,10))
-# ax.set_xlim(0,9)
-# fig.supxlabel("Leapfrog step")
-# ax.set_ylim(-2,2)
-# fig.supylabel("Value")
-# ax.set_title("x dynamics")
-# ax.plot(x_anim, y_anim)
-# fig.savefig("anHMC_ani_set.png")
-# trace, = ax.plot([],[])
-# current_plot, = ax.plot([],[]) 
-
-# # Functions for the dynamics
-# def init():
-#     trace.set_data([],[])
-#     current_plot.set_data([],[])
-#     trace.set_color('blue')
-#     current_plot.set_color('green')
-#     return trace, current_plot
-# def update(frame):
-#     trace_x = x_anim[:frame+1]
-#     trace_y = y_anim[:frame+1]
-#     trace.set_data(trace_x, trace_y)
-#     current_x = [x_anim[frame]]
-#     current_y = [y_anim[frame]]
-#     current_plot.set_data(current_x, current_y)
-#     return trace, current_plot
-
-# animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=20, repeat=False)
-# fig.canvas.manager.window.attributes('-topmost', 1)
-# animate_x.save("HMC_animate_x.gif", writer = 'pillow')
-
-# Plot the potential
+# Setting up the plot for the dynamics
 fig, ax = plt.subplots(figsize=(10,10))
-x_vals = results[0][len(x_vals)*0.1:]
-V_vals = []
-for i in range(len(x_vals)):
-    V_vals.append(an_V(x_vals[i],k,lam))
-ax.set_xlim(-2,2)
-fig.supxlabel("x")
+ax.set_xlim(0,L)
+fig.supxlabel("Leapfrog step")
 ax.set_ylim(-2,2)
-fig.supylabel("V(x)")
-ax.set_title("Anharmonic potential from Metropolis")
-ax.plot(x_vals, V_vals )
-fig.savefig("x_anHMC.png")
+fig.supylabel("x")
+ax.set_title("x dynamics")
+# ax.scatter(x_anim_1, y_anim_1)
+# fig.savefig("anHMC_ani_set_1.png")
+trace_1, = ax.plot([],[])
+current_plot_1, = ax.plot([],[]) 
+
+# Functions for the dynamics
+def init():
+    trace_1.set_data([],[])
+    trace_1.set_color('blue')
+    return trace_1
+def update(frame):
+    trace_x = x_anim_1[:frame+1]
+    trace_y = y_anim_1[:frame+1]
+    trace_1.set_data(trace_x, trace_y)
+    return trace_1
+
+animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim_1), init_func=init, blit=False, interval=20, repeat=False)
+fig.canvas.manager.window.attributes('-topmost', 1)
+animate_x.save("HMC_animate_x_1.gif", writer = 'pillow')
+
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,L)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(-3,3)
+fig.supylabel("Value")
+ax.set_title("x dynamics")
+# ax.scatter(x_anim_2, y_anim_2)
+# fig.savefig("anHMC_ani_set_2.png")
+
+trace_2, = ax.plot([],[])
+current_plot_2, = ax.plot([],[]) 
+
+# Functions for the dynamics
+def init():
+    trace_2.set_data([],[])
+    trace_2.set_color('blue')
+    return trace_2
+def update(frame):
+    trace_x = x_anim_2[:frame+1]
+    trace_y = y_anim_2[:frame+1]
+    trace_2.set_data(trace_x, trace_y)
+    return trace_2
+
+animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim_2), init_func=init, blit=False, interval=20, repeat=False)
+fig.canvas.manager.window.attributes('-topmost', 1)
+animate_x.save("HMC_animate_x_2.gif", writer = 'pillow')
+
 
 

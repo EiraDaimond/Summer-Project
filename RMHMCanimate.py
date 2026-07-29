@@ -6,10 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
  # Define the anharmonic potential term
 def an_V(x,k,lam):
-    if k >0:
-        an_V = 0.25*lam*x**4 + 0.5*lam*k*x**2
-    else:
-        an_V = 0.25*lam*x**4 - 0.5*lam*k*x**2
+    an_V = 0.25*lam*x**4 + 0.5*k*x*2
     return an_V
 
 # Define the metric tensor (second derivative of the potential term)
@@ -55,7 +52,6 @@ def RMHMC(L = 10000,
     shall denote G. In the 1D case, this is just a scalar. 
     ''' 
    
-    
     # Run the RMHMC algorithm
     '''
     Carry out the RMHMC algorithm to generate x values. 
@@ -274,26 +270,41 @@ def RMHMC(L = 10000,
         exps_delH.append(exp_minus_del_H_)
         #print("exps_minus_delH looks like:", exps_delH)
         # Check reversibility
-        p_star = p_star + 0.5*eps\
-                            *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
-                                + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
-        x_star = x_star - 0.5*eps\
-                            *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d))
-        for l in range(1, L):
-            #print("On reversibility check, iter", l)
-            p_star = p_star + eps\
-                                *(k*x_star + lam*x_star**3\
-                                    + 0.5*p_guess**2*(-6*lam*x_star)\
-                                    + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
-            x_star = x_star - 0.5*eps\
-                            *(p_star*M(x[t],k,lam,d)+p_star*M(x_guess,k,lam,d))
-            p_backwards = p_star + 0.5*eps\
-                            *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
-                                + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
-            error = (p_backwards - p)
-            errors.append(error)
+        # p_star = p_star + 0.5*eps\
+        #                     *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
+        #                         + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
+        # x_star = x_star - 0.5*eps\
+        #                     *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d))
+        # for l in range(1, L):
+        #     #print("On reversibility check, iter", l)
+        #     p_star = p_star + eps\
+        #                         *(k*x_star + lam*x_star**3\
+        #                             + 0.5*p_guess**2*(-6*lam*x_star)\
+        #                             + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
+        #     x_star = x_star - 0.5*eps\
+        #                     *(p_star*M(x[t],k,lam,d)+p_star*M(x_guess,k,lam,d))
+        #     p_backwards = p_star + 0.5*eps\
+        #                     *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
+        #                         + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
+        #     error = (p_backwards - p)
+        #     errors.append(error)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
+
+    # Plot the potential
+    fig, ax = plt.subplots(figsize=(10,10))
+    x_wbi = x[math.ceil(len(x)*0.1):]
+    V_vals_raw = []
+    for i in range(len(x)):
+        V_vals_raw.append(an_V(x[i],k,lam))
+    V_wbi = V_vals_raw[math.ceil(len(V_vals_raw)*0.1):]
+    ax.set_xlim(-2,2)
+    fig.supxlabel("x")
+    ax.set_ylim(-2,2)
+    fig.supylabel("V(x)")
+    ax.set_title("Anharmonic potential from Metropolis")
+    ax.scatter(x_wbi, V_wbi )
+    fig.savefig("x_RMHMC.png")
     return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, p_star , for_animation_x, for_animation_p
     
 
@@ -311,90 +322,84 @@ def RMHMC(L = 10000,
 #         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
 #         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
 
-# # Store the results from running the RMHMC alg
-results = RMHMC(L = 10000,
-            eps = 1e-8,
-            k = -1,
-            lam = 1,
-            n = 1,
-            tol = 1e-12,
-            d = 1e-6)
-x_anim = np.array(results[7])[:,1]
-y_anim = np.array(results[7])[:,0]
-x_anim_p = np.array(results[8])[:,1]
-y_anim_p = np.array(results[8])[:,0]
-# stride = 20
-# x_anim = x_anim[::stride]
-# y_anim = y_anim[::stride]
-# x_anim_p = x_anim_p[::stride]
-# y_anim_p = y_anim_p[::stride]
-
-# Setting up the plot for the dynamics
-fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(0,10000)
-fig.supxlabel("Leapfrog step")
-ax.set_ylim(-2,2)
-fig.supylabel(")Value")
-ax.set_title("x dynamics")
-trace, = ax.plot([],[])
-current_plot, = ax.plot([],[]) 
+# # # Store the results from running the RMHMC alg
+# results_1 = RMHMC(L=10000,
+#                   eps = 1e-8, 
+#                   k = 1,
+#                   lam = 1,
+#                   n=100,
+#                   tol = 1e-12,
+#                   d = 1e-6)
+# x_anim_raw_1 = np.array(results_1[7])[:,1]
+# x_anim_1 = x_anim_raw_1[math.ceil(len(x_anim_raw_1)*0.1):]
+# # print("x_anim", x_anim)
+# y_anim_raw_1 = np.array(results_1[7])[:,0]
+# y_anim_1 = y_anim_raw_1[math.ceil(len(y_anim_raw_1)*0.1):]
+# results_2 = an_HMC_alg(-1, 1, n=100, L= L, eps = eps)
+# x_anim_raw_2 = np.array(results_2[7])[:,1]
+# x_anim_2 = x_anim_raw_2[math.ceil(len(x_anim_raw_2)*0.1):]
+# # print("x_anim", x_anim)
+# y_anim_raw_2 = np.array(results_2[7])[:,0]
+# y_anim_2 = y_anim_raw_2[math.ceil(len(y_anim_raw_2)*0.1):]
+# # # print("y_anim", y_anim)
+# # stride = 20
+# # x_anim = x_anim[::stride]
+# # y_anim = y_anim[::stride]
 
 # # Setting up the plot for the dynamics
-# fig_p, ax_p = plt.subplots(figsize=(10,10))
-# ax_p.set_xlim(min(x_anim_p)-1,max(x_anim_p)+1)
-# fig_p.supxlabel("Leapfrog step")
-# ax_p.set_ylim(min(y_anim_p)-0.0000000001,max(y_anim_p)+0.000000001)
-# fig_p.supylabel("Value")
-# ax_p.set_title("p dynamics")
-# trace_p, = ax.plot([],[])
-# current_plot_p, = ax.plot([],[]) 
+# fig, ax = plt.subplots(figsize=(10,10))
+# ax.set_xlim(0,10000)
+# fig.supxlabel("Leapfrog step")
+# ax.set_ylim(-2,2)
+# fig.supylabel("x")
+# ax.set_title("x dynamics")
+# # ax.scatter(x_anim_1, y_anim_1)
+# # fig.savefig("anHMC_ani_set_1.png")
+# trace_1, = ax.plot([],[])
+# current_plot_1, = ax.plot([],[]) 
 
-# Functions for the dynamics
-def init():
-    trace.set_data([],[])
-    current_plot.set_data([],[])
-    trace.set_color('blue')
-    current_plot.set_color('green')
-    # trace_p.set_data([],[])
-    # current_plot_p.set_data([],[])
-    # trace_p.set_color('red')
-    # current_plot_p.set_color('green')
-    return trace, current_plot #trace_p, current_plot_p
-def update(frame):
-    trace_x = x_anim[:frame+1]
-    trace_y = y_anim[:frame+1]
-    trace.set_data(trace_x, trace_y)
-    current_x = [x_anim[frame]]
-    current_y = [y_anim[frame]]
-    current_plot.set_data(current_x, current_y)
-    # trace_x_p = x_anim_p[:frame+1]
-    # trace_y_p = y_anim_p[:frame+1]
-    # trace_p.set_data(trace_x_p, trace_y_p)
-    # current_x_p = [x_anim_p[frame]]
-    # current_y_p = [y_anim_p[frame]]
-    # current_plot_p.set_data(current_x_p, current_y_p)
-    return trace, current_plot#, trace_p, current_plot_p
-# def init_p():
-#     trace_p.set_data([],[])
-#     current_plot_p.set_data([],[])
-#     trace_p.set_color('red')
-#     current_plot_p.set_color('green')
-#     return trace_p, current_plot_p
-# def update_p(frame):
-#     trace_x_p = x_anim_p[:frame+1]
-#     trace_y_p = y_anim_p[:frame+1]
-#     trace_p.set_data(trace_x_p, trace_y_p)
-#     current_x_p = [x_anim_p[frame]]
-#     current_y_p = [y_anim_p[frame]]
-#     current_plot_p.set_data(current_x_p, current_y_p)
-#     return trace_p, current_plot_p
+# # Functions for the dynamics
+# def init():
+#     trace_1.set_data([],[])
+#     trace_1.set_color('blue')
+#     return trace_1
+# def update(frame):
+#     trace_x = x_anim_1[:frame+1]
+#     trace_y = y_anim_1[:frame+1]
+#     trace_1.set_data(trace_x, trace_y)
+#     return trace_1
 
-animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=20, repeat=False)
-fig.canvas.manager.window.attributes('-topmost', 1)
-animate_x.save("animate_x.gif", writer = 'pillow')
-# animate_p = ani.FuncAnimation(fig, update_p, frames=(len(x_anim_p)-1), init_func=init_p, blit=False, interval=50, repeat=False)
+# animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim_1), init_func=init, blit=False, interval=20, repeat=False)
 # fig.canvas.manager.window.attributes('-topmost', 1)
-# animate_p.save("animate_p.gif", writer = 'pillow')
+# animate_x.save("RMHMC_animate_x_1.gif", writer = 'pillow')
+
+# # Setting up the plot for the dynamics
+# fig, ax = plt.subplots(figsize=(10,10))
+# ax.set_xlim(0,10000)
+# fig.supxlabel("Leapfrog step")
+# ax.set_ylim(-3,3)
+# fig.supylabel("Value")
+# ax.set_title("x dynamics")
+# # ax.scatter(x_anim_2, y_anim_2)
+# # fig.savefig("anHMC_ani_set_2.png")
+
+# trace_2, = ax.plot([],[])
+# current_plot_2, = ax.plot([],[]) 
+
+# # Functions for the dynamics
+# def init():
+#     trace_2.set_data([],[])
+#     trace_2.set_color('blue')
+#     return trace_2
+# def update(frame):
+#     trace_x = x_anim_2[:frame+1]
+#     trace_y = y_anim_2[:frame+1]
+#     trace_2.set_data(trace_x, trace_y)
+#     return trace_2
+
+# animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim_2), init_func=init, blit=False, interval=20, repeat=False)
+# fig.canvas.manager.window.attributes('-topmost', 1)
+# animate_x.save("RMHMC_animate_x_2.gif", writer = 'pillow')
 
 # # Calculate gradient
 # L = 10
