@@ -64,8 +64,8 @@ def RMHMC(L = 10000,
     exps_delH = []
     errors = []
     accepted = []
-    for_animation_x = np.zeros((L+1,2),dtype=int)
-    for_animation_p = np.zeros((L+1,2), dtype = int)
+    for_animation_x = np.zeros((L+1,2),dtype=float)
+    for_animation_p = np.zeros((L+1,2), dtype = float)
     # Start the loop to generate x values
     for t in range(n+1):
         # Initialise the x_star and p_star lists
@@ -338,7 +338,7 @@ def RMHMC(L = 10000,
 #         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
 #         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
 
-# # Store the results from running the RMHMC alg
+# Store the results from running the RMHMC alg
 results_1 = RMHMC(L=10000,
                   eps = 1e-8, 
                   k = 1,
@@ -348,7 +348,6 @@ results_1 = RMHMC(L=10000,
                   d = 1e-6)
 x_anim_1 = np.array(results_1[7])[:,1]
 y_anim_1 = results_1[7][:,0]
-print("y_anim_1=", y_anim_1)
 x_anim_p_1 = np.array(results_1[8])[:,1]
 y_anim_p_1 = np.array(results_1[8])[:,1]
 results_2 = RMHMC(L=10000,
@@ -363,20 +362,23 @@ x_anim_2 = np.array(results_2[7])[:,1]
 y_anim_2 = np.array(results_2[7])[:,0]
 x_anim_p_2 = np.array(results_2[8])[:,1]
 y_anim_p_2 = np.array(results_2[8])[:,0]
-# # print("y_anim", y_anim)
-# stride = 20
-# x_anim = x_anim[::stride]
-# y_anim = y_anim[::stride]
 
-# # Setting up the plot for the dynamics
-# fig, ax = plt.subplots(figsize=(10,10))
-# ax.set_xlim(0,100)
-# fig.supxlabel("Leapfrog step")
-# ax.set_ylim(-0.001,0.001)
-# fig.supylabel("x")
-# ax.set_title("x dynamics for k =1")
-# # ax.scatter(x_anim_1, y_anim_1)
-# # fig.savefig("anHMC_ani_set_1.png")
+print(x_anim_1)
+print()
+print(y_anim_1)
+print()
+print(x_anim_2)
+print()
+print(y_anim_2)
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,10000)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(-0.001,0.001)
+fig.supylabel("x")
+ax.set_title("x dynamics for k =1")
+# ax.scatter(x_anim_1, y_anim_1)
+# fig.savefig("anHMC_ani_set_1.png")
 # trace_1, = ax.plot([],[])
 
 # # Functions for the dynamics
@@ -396,7 +398,7 @@ y_anim_p_2 = np.array(results_2[8])[:,0]
 
 # # Setting up the plot for the dynamics
 # fig, ax = plt.subplots(figsize=(10,10))
-# ax.set_xlim(0,100)
+# ax.set_xlim(0,10000)
 # fig.supxlabel("Leapfrog step")
 # ax.set_ylim(-0.001,0.001)
 # fig.supylabel("x")
@@ -478,12 +480,12 @@ y_anim_p_2 = np.array(results_2[8])[:,0]
 L = 10000
 x_grad_1 = (max(y_anim_1) - min(y_anim_1))/(L-1)
 print("Gradient of x ani for k =1 =", x_grad_1 )
-x_grad_2 = (max(y_anim_2) - min(y_anim_2))/(L-1)
-print("Gradient of x ani for k =-1 =", x_grad_2)
-p_grad_1 = (max(y_anim_p_1) - min(y_anim_p_1))/(L-1)
-print("Gradient of p ani for k =1 =", p_grad_1 )
-p_grad_2 = (max(y_anim_p_2) - min(y_anim_p_2))/(L-1)
-print("Gradient of p ani for k =-1 =", p_grad_2)
+# x_grad_2 = (max(y_anim_2) - min(y_anim_2))/(L-1)
+# print("Gradient of x ani for k =-1 =", x_grad_2)
+# p_grad_1 = (max(y_anim_p_1) - min(y_anim_p_1))/(L-1)
+# print("Gradient of p ani for k =1 =", p_grad_1 )
+# p_grad_2 = (max(y_anim_p_2) - min(y_anim_p_2))/(L-1)
+# print("Gradient of p ani for k =-1 =", p_grad_2)
 
 # # Big test for algorithm
 # eps_vals = [1e-5, 5e-5, 1e-4, 5e-4, 0.001, 0.005, 0.01, 0.05, 0.1,0.5, 1]
