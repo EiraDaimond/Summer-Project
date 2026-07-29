@@ -340,7 +340,7 @@ def RMHMC(L = 10000,
 
 # # Store the results from running the RMHMC alg
 results_1 = RMHMC(L=1000,
-                  eps = 1e-6, 
+                  eps = 1e-4, 
                   k = 1,
                   lam = 1,
                   n=1,
@@ -352,7 +352,7 @@ y_anim_1 = np.array(results_1[7])[:,0]
 x_anim_p_1 = np.array(results_1[8])[:,1]
 y_anim_p_1 = np.array(results_1[8])[:,1]
 results_2 = RMHMC(L=1000,
-                  eps = 1e-6, 
+                  eps = 1e-4, 
                   k = -1,
                   lam = 1,
                   n=1,
