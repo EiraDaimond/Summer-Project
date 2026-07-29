@@ -5,7 +5,7 @@ import math
 
 # Define the variables to be used
 m = 1.0
-L = 10000
+L = 5000
 eps = 0.001
   
 # def test_normal_p(n,m):
@@ -146,18 +146,14 @@ def an_HMC_alg(k, lam, n, L, eps):
 #         "Acceptance ratio =" ,an_HMC_alg(100000, L, eps)[4])
 
 # # Store the results from running the RMHMC alg
-results_1 = an_HMC_alg(1, 1, n=100, L= L, eps = eps)
-x_anim_raw_1 = np.array(results_1[5])[:,1]
-x_anim_1 = x_anim_raw_1[math.ceil(len(x_anim_raw_1)*0.1):]
+results_1 = an_HMC_alg(1, 1, n=1, L= L, eps = eps)
+x_anim_1 = np.array(results_1[5])[:,1]
 # print("x_anim", x_anim)
-y_anim_raw_1 = np.array(results_1[5])[:,0]
-y_anim_1 = y_anim_raw_1[math.ceil(len(y_anim_raw_1)*0.1):]
-results_2 = an_HMC_alg(-1, 1, n=100, L= L, eps = eps)
-x_anim_raw_2 = np.array(results_2[5])[:,1]
-x_anim_2 = x_anim_raw_2[math.ceil(len(x_anim_raw_2)*0.1):]
+y_anim_1 = np.array(results_1[5])[:,0]
+results_2 = an_HMC_alg(-1, 1, n=1, L= L, eps = eps)
+x_anim_2 = np.array(results_2[5])[:,1]
 # print("x_anim", x_anim)
-y_anim_raw_2 = np.array(results_2[5])[:,0]
-y_anim_2 = y_anim_raw_2[math.ceil(len(y_anim_raw_2)*0.1):]
+y_anim_2 = np.array(results_2[5])[:,0]
 # # print("y_anim", y_anim)
 # stride = 20
 # x_anim = x_anim[::stride]
@@ -186,7 +182,7 @@ def update(frame):
     trace_1.set_data(trace_x, trace_y)
     return trace_1
 
-animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim_1), init_func=init, blit=False, interval=20, repeat=False)
+animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim_1), init_func=init, blit=False, interval=50, repeat=False)
 fig.canvas.manager.window.attributes('-topmost', 1)
 animate_x.save("HMC_animate_x_1.gif", writer = 'pillow')
 
@@ -214,7 +210,7 @@ def update(frame):
     trace_2.set_data(trace_x, trace_y)
     return trace_2
 
-animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim_2), init_func=init, blit=False, interval=20, repeat=False)
+animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim_2), init_func=init, blit=False, interval=50, repeat=False)
 fig.canvas.manager.window.attributes('-topmost', 1)
 animate_x.save("HMC_animate_x_2.gif", writer = 'pillow')
 

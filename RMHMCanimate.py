@@ -58,7 +58,7 @@ def RMHMC(L = 10000,
     We will use the Generalised Leapfrog Method with the fixed point iteration.
     '''
     # Initialise the x, KE, PE, exps_delH, errors, accepted values list
-    x = [1] 
+    x = [0] 
     KE_vals =[]
     PE_vals= [0]
     exps_delH = []
@@ -291,25 +291,40 @@ def RMHMC(L = 10000,
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
 
-    # Plot the potential
-    fig, ax = plt.subplots(figsize=(10,10))
-    x_wbi = x[math.ceil(len(x)*0.1):]
-    V_vals_raw = []
-    for i in range(len(x)):
-        V_vals_raw.append(an_V(x[i],k,lam))
-    V_wbi = V_vals_raw[math.ceil(len(V_vals_raw)*0.1):]
-    ax.set_xlim(-2,2)
-    fig.supxlabel("x")
-    ax.set_ylim(-2,2)
-    fig.supylabel("V(x)")
-    ax.set_title("Anharmonic potential from Metropolis")
-    ax.scatter(x_wbi, V_wbi )
-    fig.savefig("x_RMHMC.png")
+    # # Plot the potential
+    # fig, ax = plt.subplots(figsize=(10,10))
+    # x_wbi = x[math.ceil(len(x)*0.1):]
+    # # print("x_wbi=", x_wbi)
+    # V_vals_raw = []
+    # for i in range(len(x)):
+    #     V_vals_raw.append(an_V(x[i],k,lam))
+    # V_wbi = V_vals_raw[math.ceil(len(V_vals_raw)*0.1):]
+    # # print("V_wbi=", V_wbi)
+    # ax.set_xlim(-0.001,0.001)
+    # fig.supxlabel("x")
+    # ax.set_ylim(-0.001,0.001)
+    # fig.supylabel("V(x)")
+    # ax.set_title("Anharmonic potential from Metropolis")
+    # ax.scatter(x_wbi, V_wbi )
+    # fig.savefig("x_RMHMC.png")
+    # print()
     return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, p_star , for_animation_x, for_animation_p
-    
 
+# print(RMHMC(L = 10000,
+#             eps = 1e-8,
+#             k = 1,
+#             lam = 1,
+#             n = 100,
+#             tol = 1e-12,
+#             d = 1e-6)[0])
+# print(RMHMC(L = 10000,
+#             eps = 1e-8,
+#             k = -1,
+#             lam = 1,
+#             n = 100,
+#             tol = 1e-12,
+#             d = 1e-6)[0])
 
-#print(RMHMC(L,eps, k,lam,tol,n,d)[0])
 # print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],\
 #       "Standardised standard deviation of x=",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[1] ,\
 #        "Expected KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[0], \
@@ -322,91 +337,152 @@ def RMHMC(L = 10000,
 #         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
 #         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
 
-# # # Store the results from running the RMHMC alg
-# results_1 = RMHMC(L=10000,
-#                   eps = 1e-8, 
-#                   k = 1,
-#                   lam = 1,
-#                   n=100,
-#                   tol = 1e-12,
-#                   d = 1e-6)
-# x_anim_raw_1 = np.array(results_1[7])[:,1]
-# x_anim_1 = x_anim_raw_1[math.ceil(len(x_anim_raw_1)*0.1):]
-# # print("x_anim", x_anim)
-# y_anim_raw_1 = np.array(results_1[7])[:,0]
-# y_anim_1 = y_anim_raw_1[math.ceil(len(y_anim_raw_1)*0.1):]
-# results_2 = an_HMC_alg(-1, 1, n=100, L= L, eps = eps)
-# x_anim_raw_2 = np.array(results_2[7])[:,1]
-# x_anim_2 = x_anim_raw_2[math.ceil(len(x_anim_raw_2)*0.1):]
-# # print("x_anim", x_anim)
-# y_anim_raw_2 = np.array(results_2[7])[:,0]
-# y_anim_2 = y_anim_raw_2[math.ceil(len(y_anim_raw_2)*0.1):]
-# # # print("y_anim", y_anim)
-# # stride = 20
-# # x_anim = x_anim[::stride]
-# # y_anim = y_anim[::stride]
+# # Store the results from running the RMHMC alg
+results_1 = RMHMC(L=1000,
+                  eps = 1e-6, 
+                  k = 1,
+                  lam = 1,
+                  n=1,
+                  tol = 1e-12,
+                  d = 1e-6)
+x_anim_1 = np.array(results_1[7])[:,1]
+# print("x_anim", x_anim)
+y_anim_1 = np.array(results_1[7])[:,0]
+x_anim_p_1 = np.array(results_1[8])[:,1]
+y_anim_p_1 = np.array(results_1[8])[:,1]
+results_2 = RMHMC(L=1000,
+                  eps = 1e-6, 
+                  k = -1,
+                  lam = 1,
+                  n=1,
+                  tol = 1e-12,
+                  d = 1e-6)
+x_anim_2 = np.array(results_2[7])[:,1]
+# print("x_anim", x_anim)
+y_anim_2 = np.array(results_2[7])[:,0]
+x_anim_p_2 = np.array(results_2[8])[:,1]
+y_anim_p_2 = np.array(results_2[8])[:,0]
+# # print("y_anim", y_anim)
+# stride = 20
+# x_anim = x_anim[::stride]
+# y_anim = y_anim[::stride]
 
-# # Setting up the plot for the dynamics
-# fig, ax = plt.subplots(figsize=(10,10))
-# ax.set_xlim(0,10000)
-# fig.supxlabel("Leapfrog step")
-# ax.set_ylim(-2,2)
-# fig.supylabel("x")
-# ax.set_title("x dynamics")
-# # ax.scatter(x_anim_1, y_anim_1)
-# # fig.savefig("anHMC_ani_set_1.png")
-# trace_1, = ax.plot([],[])
-# current_plot_1, = ax.plot([],[]) 
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,10000)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(-0.1,0.1)
+fig.supylabel("x")
+ax.set_title("x dynamics for k =1")
+# ax.scatter(x_anim_1, y_anim_1)
+# fig.savefig("anHMC_ani_set_1.png")
+trace_1, = ax.plot([],[])
 
-# # Functions for the dynamics
-# def init():
-#     trace_1.set_data([],[])
-#     trace_1.set_color('blue')
-#     return trace_1
-# def update(frame):
-#     trace_x = x_anim_1[:frame+1]
-#     trace_y = y_anim_1[:frame+1]
-#     trace_1.set_data(trace_x, trace_y)
-#     return trace_1
+# Functions for the dynamics
+def init():
+    trace_1.set_data([],[])
+    trace_1.set_color('blue')
+    return trace_1
+def update(frame):
+    trace_x = x_anim_1[:frame+1]
+    trace_y = y_anim_1[:frame+1]
+    trace_1.set_data(trace_x, trace_y)
+    return trace_1
 
-# animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim_1), init_func=init, blit=False, interval=20, repeat=False)
-# fig.canvas.manager.window.attributes('-topmost', 1)
-# animate_x.save("RMHMC_animate_x_1.gif", writer = 'pillow')
+animate_x_1 = ani.FuncAnimation(fig, update, frames=len(x_anim_1), init_func=init, blit=False, interval=20, repeat=False)
+fig.canvas.manager.window.attributes('-topmost', 1)
+animate_x_1.save("RMHMC_animate_x_1.gif", writer = 'pillow')
 
-# # Setting up the plot for the dynamics
-# fig, ax = plt.subplots(figsize=(10,10))
-# ax.set_xlim(0,10000)
-# fig.supxlabel("Leapfrog step")
-# ax.set_ylim(-3,3)
-# fig.supylabel("Value")
-# ax.set_title("x dynamics")
-# # ax.scatter(x_anim_2, y_anim_2)
-# # fig.savefig("anHMC_ani_set_2.png")
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,10000)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(-0.1,0.1)
+fig.supylabel("x")
+ax.set_title("x dynamics for k = -1")
+# ax.scatter(x_anim_2, y_anim_2)
+# fig.savefig("RMHMC_ani_set_2.png")
 
-# trace_2, = ax.plot([],[])
-# current_plot_2, = ax.plot([],[]) 
+trace_2, = ax.plot([],[]) 
 
-# # Functions for the dynamics
-# def init():
-#     trace_2.set_data([],[])
-#     trace_2.set_color('blue')
-#     return trace_2
-# def update(frame):
-#     trace_x = x_anim_2[:frame+1]
-#     trace_y = y_anim_2[:frame+1]
-#     trace_2.set_data(trace_x, trace_y)
-#     return trace_2
+# Functions for the dynamics
+def init_2():
+    trace_2.set_data([],[])
+    trace_2.set_color('blue')
+    return trace_2
+def update_2(frame):
+    trace_x = x_anim_2[:frame+1]
+    trace_y = y_anim_2[:frame+1]
+    trace_2.set_data(trace_x, trace_y)
+    return trace_2
 
-# animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim_2), init_func=init, blit=False, interval=20, repeat=False)
-# fig.canvas.manager.window.attributes('-topmost', 1)
-# animate_x.save("RMHMC_animate_x_2.gif", writer = 'pillow')
+animate_x_2 = ani.FuncAnimation(fig, update_2, frames=len(x_anim_2), init_func=init, blit=False, interval=20, repeat=False)
+fig.canvas.manager.window.attributes('-topmost', 1)
+animate_x_2.save("RMHMC_animate_x_2.gif", writer = 'pillow')
 
-# # Calculate gradient
-# L = 10
-# x_grad = (max(y_anim) - min(y_anim))/(L-1)
-# p_grad = (max(y_anim_p) - min(y_anim_p))/(L-1)
-# print("Gradient of x ani =", x_grad )
-# print("Gradient of p ani =", p_grad)
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,10000)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(-0.1,0.1)
+fig.supylabel("p")
+ax.set_title("p dynamics for k =1 ")
+# ax.scatter(x_anim_p_1, y_anim_p_1)
+# fig.savefig("RMHMC_ani_set_3.png")
+trace_3, = ax.plot([],[]) 
+
+# Functions for the dynamics
+def init_3():
+    trace_3.set_data([],[])
+    trace_3.set_color('blue')
+    return trace_3
+def update_3(frame):
+    trace_x = x_anim_1[:frame+1]
+    trace_y = y_anim_1[:frame+1]
+    trace_3.set_data(trace_x, trace_y)
+    return trace_3
+
+animate_p_1 = ani.FuncAnimation(fig, update_3, frames=len(x_anim_p_1), init_func=init, blit=False, interval=20, repeat=False)
+fig.canvas.manager.window.attributes('-topmost', 1)
+animate_p_1.save("RMHMC_animate_p_1.gif", writer = 'pillow')
+
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,10000)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(-0.1,0.1)
+fig.supylabel("p")
+ax.set_title("p dynamics for k = -1")
+# ax.scatter(x_anim_p_2, y_anim_p_2)
+# fig.savefig("RMHMC_ani_set_4.png")
+
+trace_4, = ax.plot([],[])
+
+# Functions for the dynamics
+def init_4():
+    trace_4.set_data([],[])
+    trace_4.set_color('blue')
+    return trace_2
+def update_4(frame):
+    trace_x = x_anim_2[:frame+1]
+    trace_y = y_anim_2[:frame+1]
+    trace_4.set_data(trace_x, trace_y)
+    return trace_4
+
+animate_p_2 = ani.FuncAnimation(fig, update_4, frames=len(x_anim_p_2), init_func=init, blit=False, interval=20, repeat=False)
+fig.canvas.manager.window.attributes('-topmost', 1)
+animate_p_2.save("RMHMC_animate_p_2.gif", writer = 'pillow')
+
+# Calculate gradient
+L = 10000
+x_grad_1 = (max(y_anim_1) - min(y_anim_1))/(L-1)
+print("Gradient of x ani for k =1 =", x_grad_1 )
+x_grad_2 = (max(y_anim_2) - min(y_anim_2))/(L-1)
+print("Gradient of x ani for k =-1 =", x_grad_2)
+p_grad_1 = (max(y_anim_p_1) - min(y_anim_p_1))/(L-1)
+print("Gradient of p ani for k =1 =", p_grad_1 )
+p_grad_2 = (max(y_anim_p_2) - min(y_anim_p_2))/(L-1)
+print("Gradient of p ani for k =-1 =", p_grad_2)
 
 # # Big test for algorithm
 # eps_vals = [1e-5, 5e-5, 1e-4, 5e-4, 0.001, 0.005, 0.01, 0.05, 0.1,0.5, 1]

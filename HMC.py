@@ -145,10 +145,8 @@ def HMC(n,L,eps):
 
 # # Store the results from running the RMHMC alg
 results = HMC(n=10000, L= L, eps = eps)
-x_anim_raw = np.array(results[6][:,1])
-x_anim = x_anim_raw[math.ceil(len(x_anim_raw)*0.1):]
-y_anim_raw = np.array(results[6][:,0])
-y_anim = y_anim_raw[math.ceil(len(y_anim_raw)*0.1):]
+x_anim = np.array(results[6][:,1])
+y_anim = np.array(results[6][:,0])
 # print("x_anim=", x_anim)
 # print("y_anim=", y_anim)
 # stride = 20
