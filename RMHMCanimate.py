@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as ani
 from mpl_toolkits.mplot3d import Axes3D
 
- # Define the anharmonic potential term
+# Define the anharmonic potential term
 def an_V(x,k,lam):
     an_V = 0.25*lam*x**4 + 0.5*k*x*2
     return an_V
@@ -339,20 +339,20 @@ def RMHMC(L = 10000,
 #         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
 
 # # Store the results from running the RMHMC alg
-results_1 = RMHMC(L=1000,
-                  eps = 1e-4, 
+results_1 = RMHMC(L=10,
+                  eps = 0.1, 
                   k = 1,
                   lam = 1,
                   n=1,
                   tol = 1e-12,
                   d = 1e-6)
 x_anim_1 = np.array(results_1[7])[:,1]
-# print("x_anim", x_anim)
+print("x_anim_1", x_anim_1)
 y_anim_1 = np.array(results_1[7])[:,0]
 x_anim_p_1 = np.array(results_1[8])[:,1]
 y_anim_p_1 = np.array(results_1[8])[:,1]
-results_2 = RMHMC(L=1000,
-                  eps = 1e-4, 
+results_2 = RMHMC(L=10,
+                  eps = 0.01, 
                   k = -1,
                   lam = 1,
                   n=1,
@@ -370,7 +370,7 @@ y_anim_p_2 = np.array(results_2[8])[:,0]
 
 # Setting up the plot for the dynamics
 fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(0,1000)
+ax.set_xlim(0,10)
 fig.supxlabel("Leapfrog step")
 ax.set_ylim(-0.01,0.01)
 fig.supylabel("x")
@@ -390,13 +390,13 @@ def update(frame):
     trace_1.set_data(trace_x, trace_y)
     return trace_1
 
-animate_x_1 = ani.FuncAnimation(fig, update, frames=len(x_anim_1), init_func=init, blit=False, interval=20, repeat=False)
+animate_x_1 = ani.FuncAnimation(fig, update, frames=len(x_anim_1), init_func=init, blit=False, interval=50, repeat=False)
 fig.canvas.manager.window.attributes('-topmost', 1)
 animate_x_1.save("RMHMC_animate_x_1.gif", writer = 'pillow')
 
 # Setting up the plot for the dynamics
 fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(0,1000)
+ax.set_xlim(0,10)
 fig.supxlabel("Leapfrog step")
 ax.set_ylim(-0.01,0.01)
 fig.supylabel("x")
@@ -417,7 +417,7 @@ def update_2(frame):
     trace_2.set_data(trace_x, trace_y)
     return trace_2
 
-animate_x_2 = ani.FuncAnimation(fig, update_2, frames=len(x_anim_2), init_func=init, blit=False, interval=20, repeat=False)
+animate_x_2 = ani.FuncAnimation(fig, update_2, frames=len(x_anim_2), init_func=init, blit=False, interval=50, repeat=False)
 fig.canvas.manager.window.attributes('-topmost', 1)
 animate_x_2.save("RMHMC_animate_x_2.gif", writer = 'pillow')
 
@@ -443,7 +443,7 @@ def update_3(frame):
     trace_3.set_data(trace_x, trace_y)
     return trace_3
 
-animate_p_1 = ani.FuncAnimation(fig, update_3, frames=len(x_anim_p_1), init_func=init, blit=False, interval=20, repeat=False)
+animate_p_1 = ani.FuncAnimation(fig, update_3, frames=len(x_anim_p_1), init_func=init, blit=False, interval=50, repeat=False)
 fig.canvas.manager.window.attributes('-topmost', 1)
 animate_p_1.save("RMHMC_animate_p_1.gif", writer = 'pillow')
 
