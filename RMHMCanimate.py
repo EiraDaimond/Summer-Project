@@ -145,6 +145,7 @@ def RMHMC(L = 10000,
         #()
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L+1):
+            print("L=", l)
             p_current = p_star
             p_guess = p_star
             p_star = 0
@@ -369,9 +370,9 @@ y_anim_p_2 = np.array(results_2[8])[:,0]
 
 # Setting up the plot for the dynamics
 fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(0,10000)
+ax.set_xlim(0,1000)
 fig.supxlabel("Leapfrog step")
-ax.set_ylim(-0.1,0.1)
+ax.set_ylim(-0.01,0.01)
 fig.supylabel("x")
 ax.set_title("x dynamics for k =1")
 # ax.scatter(x_anim_1, y_anim_1)
@@ -395,9 +396,9 @@ animate_x_1.save("RMHMC_animate_x_1.gif", writer = 'pillow')
 
 # Setting up the plot for the dynamics
 fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(0,10000)
+ax.set_xlim(0,1000)
 fig.supxlabel("Leapfrog step")
-ax.set_ylim(-0.1,0.1)
+ax.set_ylim(-0.01,0.01)
 fig.supylabel("x")
 ax.set_title("x dynamics for k = -1")
 # ax.scatter(x_anim_2, y_anim_2)
