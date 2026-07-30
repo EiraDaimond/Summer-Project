@@ -45,7 +45,7 @@ def RMHMC(L = 10000,
             lam = 1,
             n = 1000,
             tol = 1e-12,
-            d = 1e-6):
+            d = 0.1):
     '''
     Rewriting the anharmonic HMC class but for RMHMC in one dimension. 
     Mass is non-constant and is instead represented by the metric tensor which I 
@@ -58,7 +58,7 @@ def RMHMC(L = 10000,
     We will use the Generalised Leapfrog Method with the fixed point iteration.
     '''
     # Initialise the x, KE, PE, exps_delH, errors, accepted values list
-    x = [0] 
+    x = [2] 
     KE_vals =[]
     PE_vals= [0]
     exps_delH = []
@@ -301,9 +301,9 @@ def RMHMC(L = 10000,
     #     V_vals_raw.append(an_V(x[i],k,lam))
     # V_wbi = V_vals_raw[math.ceil(len(V_vals_raw)*0.1):]
     # # print("V_wbi=", V_wbi)
-    # ax.set_xlim(-0.001,0.001)
+    # ax.set_xlim(0,3)
     # fig.supxlabel("x")
-    # ax.set_ylim(-0.001,0.001)
+    # ax.set_ylim(0,5)
     # fig.supylabel("V(x)")
     # ax.set_title("Anharmonic potential from Metropolis")
     # ax.scatter(x_wbi, V_wbi )
@@ -322,7 +322,7 @@ def RMHMC(L = 10000,
 #             eps = 1e-8,
 #             k = -1,
 #             lam = 1,
-#             n = 100,
+#             n = 1000,
 #             tol = 1e-12,
 #             d = 1e-6)[0])
 
@@ -338,45 +338,45 @@ def RMHMC(L = 10000,
 #         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
 #         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
 
-# Store the results from running the RMHMC alg
-results_1 = RMHMC(L=10000,
-                  eps = 1e-8, 
-                  k = 1,
-                  lam = 1,
-                  n=1,
-                  tol = 1e-12,
-                  d = 1e-6)
-x_anim_1 = np.array(results_1[7])[:,1]
-y_anim_1 = results_1[7][:,0]
-x_anim_p_1 = np.array(results_1[8])[:,1]
-y_anim_p_1 = np.array(results_1[8])[:,1]
+# # Store the results from running the RMHMC alg
+# results_1 = RMHMC(L=10000,
+#                   eps = 1e-8, 
+#                   k = 1,
+#                   lam = 1,
+#                   n=1,
+#                   tol = 1e-12,
+#                   d = 1e-6)
+# x_anim_1 = np.array(results_1[7])[:,1]
+# y_anim_1 = results_1[7][:,0]
+# x_anim_p_1 = np.array(results_1[8])[:,1]
+# y_anim_p_1 = np.array(results_1[8])[:,1]
 results_2 = RMHMC(L=10000,
                   eps = 1e-8, 
                   k = -1,
                   lam = 1,
                   n=1,
                   tol = 1e-12,
-                  d = 1e-6)
+                  d = 0.1)
 x_anim_2 = np.array(results_2[7])[:,1]
 # print("x_anim", x_anim)
 y_anim_2 = np.array(results_2[7])[:,0]
-x_anim_p_2 = np.array(results_2[8])[:,1]
-y_anim_p_2 = np.array(results_2[8])[:,0]
+# x_anim_p_2 = np.array(results_2[8])[:,1]
+# y_anim_p_2 = np.array(results_2[8])[:,0]
 
-print(x_anim_1)
-print()
-print(y_anim_1)
-print()
-print(x_anim_2)
-print()
-print(y_anim_2)
-# Setting up the plot for the dynamics
-fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(0,10000)
-fig.supxlabel("Leapfrog step")
-ax.set_ylim(-0.001,0.001)
-fig.supylabel("x")
-ax.set_title("x dynamics for k =1")
+# print(x_anim_1)
+# print()
+# print(y_anim_1)
+# print()
+# print(x_anim_2)
+# print()
+# print(y_anim_2)
+# # Setting up the plot for the dynamics
+# fig, ax = plt.subplots(figsize=(10,10))
+# ax.set_xlim(0,10000)
+# fig.supxlabel("Leapfrog step")
+# ax.set_ylim(-0.001,0.001)
+# fig.supylabel("x")
+# ax.set_title("x dynamics for k =1")
 # ax.scatter(x_anim_1, y_anim_1)
 # fig.savefig("anHMC_ani_set_1.png")
 # trace_1, = ax.plot([],[])
@@ -396,15 +396,15 @@ ax.set_title("x dynamics for k =1")
 # fig.canvas.manager.window.attributes('-topmost', 1)
 # animate_x_1.save("RMHMC_animate_x_1.gif", writer = 'pillow')
 
-# # Setting up the plot for the dynamics
-# fig, ax = plt.subplots(figsize=(10,10))
-# ax.set_xlim(0,10000)
-# fig.supxlabel("Leapfrog step")
-# ax.set_ylim(-0.001,0.001)
-# fig.supylabel("x")
-# ax.set_title("x dynamics for k = -1")
-# # ax.scatter(x_anim_2, y_anim_2)
-# # fig.savefig("RMHMC_ani_set_2.png")
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,10000)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(0,4)
+fig.supylabel("x")
+ax.set_title("x dynamics for k = -1")
+ax.scatter(x_anim_2, y_anim_2)
+fig.savefig("RMHMC_ani_set_2.png")
 
 # trace_2, = ax.plot([],[]) 
 
@@ -476,10 +476,10 @@ ax.set_title("x dynamics for k =1")
 # fig.canvas.manager.window.attributes('-topmost', 1)
 # animate_p_2.save("RMHMC_animate_p_2.gif", writer = 'pillow')
 
-# Calculate gradient
-L = 10000
-x_grad_1 = (max(y_anim_1) - min(y_anim_1))/(L-1)
-print("Gradient of x ani for k =1 =", x_grad_1 )
+# # Calculate gradient
+# L = 10000
+# x_grad_1 = (max(y_anim_1) - min(y_anim_1))/(L-1)
+# print("Gradient of x ani for k =1 =", x_grad_1 )
 # x_grad_2 = (max(y_anim_2) - min(y_anim_2))/(L-1)
 # print("Gradient of x ani for k =-1 =", x_grad_2)
 # p_grad_1 = (max(y_anim_p_1) - min(y_anim_p_1))/(L-1)
