@@ -5,7 +5,7 @@ import matplotlib.animation as ani
 
 # Define the variables to be used
 m = 1 
-L = 100
+L = 1000
 eps = 0.01
 k = 1
 
@@ -66,17 +66,19 @@ def HMC(n,L,eps):
     exps_delH = []
     accepted = []
     for_animation_x = np.zeros((L,2),dtype=float)
+    for_animation_p = np.zeros((L,2),dtype = float)
     # Start the loop to generate the x values
     for t in range(n+1):
-        print("On iteration", t)
+        # print("On iteration", t)
         # Draw the momentum from a Normal distribution
         p = np.random.normal(0,m**0.5)
-        print("p=",p)
+        # print("p=",p)
         # Carry out step 1 of the leapfrog method
         p_star = p - 0.5*eps*k*x[t]
         # print("p_star is=", p_star)
         x_star = x[t] + eps*p_star/m
         for_animation_x[0] = x_star, 0
+        for_animation_p[0] = p_star, 0
         # print("Change is", eps*p_star/m)
         # print("x_star is=", x_star)
         # Compute (x*,p*) using L leapfrog steps of size eps
@@ -85,6 +87,7 @@ def HMC(n,L,eps):
             p_star = p_star - eps*k*x_star
             x_star = x_star + eps*p_star/m
             for_animation_x[l] = x_star, l
+            for_animation_p[l] = p_star, l
         #     print("Change is", eps*p_star/m)
         # print("x_star=", x_star)
         # Carry out the final step of the leapfrog method
@@ -119,7 +122,7 @@ def HMC(n,L,eps):
         # print(x)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
-    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, for_animation_x
+    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, for_animation_x, for_animation_p
 
 # # Find the expected value of x and corresponding standardised standard deviation
 # def mean_and_sd(x,m,n):
@@ -147,43 +150,68 @@ def HMC(n,L,eps):
 results = HMC(n=10000, L= L, eps = eps)
 x_anim = np.array(results[6][:,1])
 y_anim = np.array(results[6][:,0])
-# print("x_anim=", x_anim)
-# print("y_anim=", y_anim)
-# stride = 20
-# x_anim = x_anim[::stride]
-# y_anim = y_anim[::stride]
+
+# # Setting up the plot for the dynamics
+# fig, ax = plt.subplots(figsize=(10,10))
+# ax.set_xlim(0,L)
+# fig.supxlabel("Leapfrog step")
+# ax.set_ylim(-2,2)
+# fig.supylabel("Value")
+# ax.set_title("x dynamics")
+# ax.scatter(x_anim, y_anim)
+# fig.savefig("HMC_ani_set.png")
+# trace, = ax.plot([],[])
+# current_plot, = ax.plot([],[]) 
+
+# # Functions for the dynamics
+# def init():
+#     trace.set_data([],[])
+#     current_plot.set_data([],[])
+#     trace.set_color('blue')
+#     current_plot.set_color('green')
+#     return trace, current_plot
+# def update(frame):
+#     trace_x = x_anim[:frame+1]
+#     trace_y = y_anim[:frame+1]
+#     trace.set_data(trace_x, trace_y)
+#     current_x = [x_anim[frame]]
+#     current_y = [y_anim[frame]]
+#     current_plot.set_data(current_x, current_y)
+#     return trace, current_plot
+
+# animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=100, repeat=False)
+# fig.canvas.manager.window.attributes('-topmost', 1)
+# animate_x.save("HMC_ani.gif", writer = 'pillow')
+
+x_anim_p = np.array(results[7][:,1])
+y_anim_p = np.array(results[7][:,0])
 
 # Setting up the plot for the dynamics
 fig, ax = plt.subplots(figsize=(10,10))
 ax.set_xlim(0,L)
 fig.supxlabel("Leapfrog step")
-ax.set_ylim(-2,2)
+ax.set_ylim(-3,3)
 fig.supylabel("Value")
-ax.set_title("x dynamics")
-# ax.scatter(x_anim, y_anim)
-# fig.savefig("HMC_ani_set.png")
-trace, = ax.plot([],[])
-current_plot, = ax.plot([],[]) 
+ax.set_title("p dynamics")
+ax.scatter(x_anim_p, y_anim_p, c='#D32F2F')
+fig.savefig("HMC_ani_set_p.png")
+# trace_p, = ax.plot([],[])
+# current_plot_p, = ax.plot([],[]) 
 
-# Functions for the dynamics
-def init():
-    trace.set_data([],[])
-    current_plot.set_data([],[])
-    trace.set_color('blue')
-    current_plot.set_color('green')
-    return trace, current_plot
-def update(frame):
-    trace_x = x_anim[:frame+1]
-    trace_y = y_anim[:frame+1]
-    trace.set_data(trace_x, trace_y)
-    current_x = [x_anim[frame]]
-    current_y = [y_anim[frame]]
-    current_plot.set_data(current_x, current_y)
-    return trace, current_plot
+# # Functions for the dynamics
+# def init_p():
+#     trace_p.set_data([],[])
+#     trace_p.set_color('blue')
+#     return trace_p
+# def update_p(frame):
+#     trace_x_p = x_anim[:frame+1]
+#     trace_y_p = y_anim[:frame+1]
+#     trace_p.set_data(trace_x_p, trace_y_p)
+#     return trace_p
 
-animate_x = ani.FuncAnimation(fig, update, frames=len(x_anim), init_func=init, blit=False, interval=20, repeat=False)
-fig.canvas.manager.window.attributes('-topmost', 1)
-animate_x.save("HMC_ani.gif", writer = 'pillow')
+# animate_p = ani.FuncAnimation(fig, update_p, frames=len(x_anim_p), init_func=init_p, blit=False, interval=100, repeat=False)
+# fig.canvas.manager.window.attributes('-topmost', 1)
+# animate_p.save("HMC_ani_p.gif", writer = 'pillow')
 
 # # Plot the potential
 # fig, ax = plt.subplots(figsize=(10,10))

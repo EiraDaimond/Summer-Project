@@ -271,24 +271,24 @@ def RMHMC(L = 10000,
         exps_delH.append(exp_minus_del_H_)
         #print("exps_minus_delH looks like:", exps_delH)
         # Check reversibility
-        # p_star = p_star + 0.5*eps\
-        #                     *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
-        #                         + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
-        # x_star = x_star - 0.5*eps\
-        #                     *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d))
-        # for l in range(1, L):
-        #     #print("On reversibility check, iter", l)
-        #     p_star = p_star + eps\
-        #                         *(k*x_star + lam*x_star**3\
-        #                             + 0.5*p_guess**2*(-6*lam*x_star)\
-        #                             + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
-        #     x_star = x_star - 0.5*eps\
-        #                     *(p_star*M(x[t],k,lam,d)+p_star*M(x_guess,k,lam,d))
-        #     p_backwards = p_star + 0.5*eps\
-        #                     *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
-        #                         + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
-        #     error = (p_backwards - p)
-        #     errors.append(error)
+        p_star = p_star + 0.5*eps\
+                            *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
+                                + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
+        x_star = x_star - 0.5*eps\
+                            *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d))
+        for l in range(1, L):
+            #print("On reversibility check, iter", l)
+            p_star = p_star + eps\
+                                *(k*x_star + lam*x_star**3\
+                                    + 0.5*p_guess**2*(-6*lam*x_star)\
+                                    + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
+            x_star = x_star - 0.5*eps\
+                            *(p_star*M(x[t],k,lam,d)+p_star*M(x_guess,k,lam,d))
+            p_backwards = p_star + 0.5*eps\
+                            *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
+                                + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
+            error = (p_backwards - p)
+            errors.append(error)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
 
@@ -333,44 +333,45 @@ results_pos = RMHMC(L = 10000,
             n = 100,
             tol = 1e-12,
             d = 0.1)
-print(results_pos[3])
-# results_neg = RMHMC(L = 10000,
-#             eps = 1e-8,
-#             k = -1,
-#             lam = 1,
-#             n = 100,
-#             tol = 1e-12,
-#             d = 0.1)
+
+results_neg = RMHMC(L = 10000,
+                eps = 1e-8,
+                k = -1,
+                lam = 1,
+                n = 100,
+                tol = 1e-12,
+                d = 0.1)
 k = 1
 lam = 1
 n = 100
 d = 0.1 
 # print("Expected x =", mean_and_sd((results_pos[0]),n, k, lam, d)[0],\
-#       "Standardised standard deviation of x=",mean_and_sd(((results_pos)[0]),n, k, lam, d)[1]) ,\
+#       "Standardised standard deviation of x=",mean_and_sd(((results_pos)[0]),n, k, lam, d)[1]) 
 #     #    "Expected KE = ",mean_and_sd(results[1]),n, 1e-6)[0], \
 #     #    "Standardised standard deviation of KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[1],\
 #     #    "Expected PE =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[0],\
 #     #    "Standardised standard deviation of PE = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[1],\
-print(      "Expected exp(-delH)= " ,mean_and_sd((results_pos[3]),n, k,lam, d)[0])
-#        "Standardised standard deviation of exp(-delH) = ", mean_and_sd((results_pos[3]),n, k, lam, d)[1],\
-#         "Expected error =", mean_and_sd((results_pos[4]),n, k, lam, d)[0],\
+# print(      "Expected exp(-delH)= " ,mean_and_sd((results_pos[3]),n, k,lam, d)[0],\
+#       "Standardised standard deviation of exp(-delH) = ", mean_and_sd((results_pos[3]),n, k, lam, d)[1],\
+#        "Expected error =", mean_and_sd((results_pos[4]),n, k, lam, d)[0],\
 #         "Standardised standard deviation of error=", mean_and_sd((results_pos[4]),n, k, lam,d)[1],\
-#         "Acceptance ratio =" ,results_pos[5]) 
+print("Acceptance ratio =" ,results_pos[5]) 
 # print()
 # print("Now for negative k")
 # print()
-# k = -1
-# print("Expected x =", mean_and_sd((results_neg[0]),n, k, lam, d)[0],\
-#       "Standardised standard deviation of x=",mean_and_sd(((results_neg)[0]),n,k, lam,d)[1]) ,\
-#     #    "Expected KE = ",mean_and_sd(results[1]),n, 1e-6)[0], \
-#     #    "Standardised standard deviation of KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[1],\
-#     #    "Expected PE =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[0],\
-#     #    "Standardised standard deviation of PE = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[1],\
-# print(      "Expected exp(-delH)= " ,mean_and_sd((results_neg[3]),n,k, lam,d)[0],\
-#        "Standardised standard deviation of exp(-delH) = ", mean_and_sd((results_neg[3]),n, k, lam, d)[1],\
-#         "Expected error =", mean_and_sd((results_neg[4]),n, k, lam, d)[0],\
-#         "Standardised standard deviation of error=", mean_and_sd((results_neg[4]),n, k, lam, d)[1],\
-#         "Acceptance ratio =" ,results_neg[5]) 
+k = -1
+# print(results_neg[4])
+print("Expected x =", mean_and_sd((results_neg[0]),n, k, lam, d)[0],\
+      "Standardised standard deviation of x=",mean_and_sd(((results_neg)[0]),n,k, lam,d)[1]) ,\
+    #    "Expected KE = ",mean_and_sd(results[1]),n, 1e-6)[0], \
+    #    "Standardised standard deviation of KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[1],\
+    #    "Expected PE =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[0],\
+    #    "Standardised standard deviation of PE = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[1],\
+print(     "Expected exp(-delH)= " ,mean_and_sd((results_neg[3]),n,k, lam,d)[0],\
+       "Standardised standard deviation of exp(-delH) = ", mean_and_sd((results_neg[3]),n, k, lam, d)[1])
+print("Expected error =", mean_and_sd((results_neg[4]),n, k, lam, d)[0],\
+        "Standardised standard deviation of error=", mean_and_sd((results_neg[4]),n, k, lam, d)[1],\
+         "Acceptance ratio =" ,results_neg[5]) 
 # # Store the results from running the RMHMC alg
 # results_1 = RMHMC(L=10000,
 #                   eps = 1e-8, 
@@ -425,7 +426,7 @@ print(      "Expected exp(-delH)= " ,mean_and_sd((results_pos[3]),n, k,lam, d)[0
 #     trace_1.set_data(trace_x, trace_y)
 #     return trace_1
 
-# animate_x_1 = ani.FuncAnimation(fig, update, frames=len(x_anim_1), init_func=init, blit=False, interval=50, repeat=False)
+# animate_x_1 = ani.FuncAnimation(fig, update, frames=len(x_anim_1), init_func=init, blit=False, interval=100, repeat=False)
 # fig.canvas.manager.window.attributes('-topmost', 1)
 # animate_x_1.save("RMHMC_animate_x_1.gif", writer = 'pillow')
 
@@ -452,7 +453,7 @@ print(      "Expected exp(-delH)= " ,mean_and_sd((results_pos[3]),n, k,lam, d)[0
 #     trace_2.set_data(trace_x, trace_y)
 #     return trace_2
 
-# animate_x_2 = ani.FuncAnimation(fig, update_2, frames=len(x_anim_2), init_func=init, blit=False, interval=50, repeat=False)
+# animate_x_2 = ani.FuncAnimation(fig, update_2, frames=len(x_anim_2), init_func=init, blit=False, interval=100, repeat=False)
 # fig.canvas.manager.window.attributes('-topmost', 1)
 # animate_x_2.save("RMHMC_animate_x_2.gif", writer = 'pillow')
 
