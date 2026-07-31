@@ -33,11 +33,11 @@ def mean_and_sd(list, n,k, lam, d):
     '''
     length = len(list)
     values_to_use = list[math.ceil(length/10):]
-    # Initialise the sd_list
-    sd_list = [0]*(len(values_to_use))
+
+    M_vals = [0]*(len(values_to_use))
     for i in range(len(values_to_use)):
-        sd_list[i] = M(values_to_use[i],k, lam, d)
-    return np.mean(values_to_use), np.sqrt((np.mean(sd_list))/(n-1))  
+        M_vals[i] = M(values_to_use[i],k, lam, d)
+    return np.mean(values_to_use), np.sqrt((np.mean(M_vals))/(n-1))*np.std(values_to_use)  
 
 def RMHMC(L = 10000,
             eps = 1e-8,
@@ -58,7 +58,7 @@ def RMHMC(L = 10000,
     We will use the Generalised Leapfrog Method with the fixed point iteration.
     '''
     # Initialise the x, KE, PE, exps_delH, errors, accepted values list
-    x = [2] 
+    x = [0] 
     KE_vals =[]
     PE_vals= [0]
     exps_delH = []
@@ -67,7 +67,7 @@ def RMHMC(L = 10000,
     for_animation_x = np.zeros((L+1,2),dtype=float)
     for_animation_p = np.zeros((L+1,2), dtype = float)
     # Start the loop to generate x values
-    for t in range(n+1):
+    for t in range(n):
         # Initialise the x_star and p_star lists
         x_stars = []
         p_stars = []
@@ -106,7 +106,7 @@ def RMHMC(L = 10000,
                     else:
                         p_guess = p_star  
             #()
-        #("Moving on from 1st step with p_star", p_star)  
+        print("Moving on from 1st step with p_star", p_star)  
         p_stars.append(p_star)
         for_animation_p[0] = [p_star, 1]
         # x convergence
@@ -134,7 +134,7 @@ def RMHMC(L = 10000,
                     else:
                         x_guess = x_star
             #()
-        #("Moving on from 1st step with x_star", x_star)
+        print("Moving on from 1st step with x_star", x_star)
         #("x_star is now", x_star)
         x_stars.append(x_star)
         V_x.append(an_V(x_star,k,lam))
@@ -178,7 +178,7 @@ def RMHMC(L = 10000,
                         else:
                             p_guess = p_star
                 #()
-            #("Moving on from middle step iter [",l,"] with p_star", p_star)
+            print("Moving on from middle step iter [",l,"] with p_star", p_star)
             p_stars.append(p_star)
             for_animation_p[l] = [p_star, l]
             #()
@@ -211,7 +211,7 @@ def RMHMC(L = 10000,
                         else:
                             x_guess = x_star
                 #()
-            #("Moving on from middle step iter[",l,"] with x_star", x_star)
+            print("Moving on from middle step iter[",l,"] with x_star", x_star)
             x_stars.append(x_star)
             V_x.append(an_V(x_star,k,lam))  
             for_animation_x[l] = [x_stars[-1],l]
@@ -315,7 +315,7 @@ def RMHMC(L = 10000,
 #             eps = 1e-8,
 #             k = 1,
 #             lam = 1,
-#             n = 100,
+#             n = 1,
 #             tol = 1e-12,
 #             d = 1e-6)[0])
 # print("x with k=-1",RMHMC(L = 10000,
@@ -326,18 +326,51 @@ def RMHMC(L = 10000,
 #             tol = 1e-12,
 #             d = 1e-6)[0])
 
-# print("Expected x =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[0],\
-#       "Standardised standard deviation of x=",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[0]),n, 1e-6)[1] ,\
-#        "Expected KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[0], \
-#        "Standardised standard deviation of KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[1],\
-#        "Expected PE =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[0],\
-#        "Standardised standard deviation of PE = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[1],\
-#        "Expected exp(-delH)= " ,mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[3]),n, 1e-6)[0],\
-#        "Standardised standard deviation of exp(-delH) = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[3]),n, 1e-6)[1],\
-#         "Expected error =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[0],\
-#         "Standardised standard deviation of error=", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[4]),n, 1e-6)[1],\
-#         "Acceptance ratio =" ,RMHMC(L,eps,1,1,1e-6,n,1e-6)[5])
-
+results_pos = RMHMC(L = 10000,
+            eps = 1e-8,
+            k = 1,
+            lam = 1,
+            n = 100,
+            tol = 1e-12,
+            d = 0.1)
+print(results_pos[3])
+# results_neg = RMHMC(L = 10000,
+#             eps = 1e-8,
+#             k = -1,
+#             lam = 1,
+#             n = 100,
+#             tol = 1e-12,
+#             d = 0.1)
+k = 1
+lam = 1
+n = 100
+d = 0.1 
+# print("Expected x =", mean_and_sd((results_pos[0]),n, k, lam, d)[0],\
+#       "Standardised standard deviation of x=",mean_and_sd(((results_pos)[0]),n, k, lam, d)[1]) ,\
+#     #    "Expected KE = ",mean_and_sd(results[1]),n, 1e-6)[0], \
+#     #    "Standardised standard deviation of KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[1],\
+#     #    "Expected PE =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[0],\
+#     #    "Standardised standard deviation of PE = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[1],\
+print(      "Expected exp(-delH)= " ,mean_and_sd((results_pos[3]),n, k,lam, d)[0])
+#        "Standardised standard deviation of exp(-delH) = ", mean_and_sd((results_pos[3]),n, k, lam, d)[1],\
+#         "Expected error =", mean_and_sd((results_pos[4]),n, k, lam, d)[0],\
+#         "Standardised standard deviation of error=", mean_and_sd((results_pos[4]),n, k, lam,d)[1],\
+#         "Acceptance ratio =" ,results_pos[5]) 
+# print()
+# print("Now for negative k")
+# print()
+# k = -1
+# print("Expected x =", mean_and_sd((results_neg[0]),n, k, lam, d)[0],\
+#       "Standardised standard deviation of x=",mean_and_sd(((results_neg)[0]),n,k, lam,d)[1]) ,\
+#     #    "Expected KE = ",mean_and_sd(results[1]),n, 1e-6)[0], \
+#     #    "Standardised standard deviation of KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[1],\
+#     #    "Expected PE =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[0],\
+#     #    "Standardised standard deviation of PE = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[1],\
+# print(      "Expected exp(-delH)= " ,mean_and_sd((results_neg[3]),n,k, lam,d)[0],\
+#        "Standardised standard deviation of exp(-delH) = ", mean_and_sd((results_neg[3]),n, k, lam, d)[1],\
+#         "Expected error =", mean_and_sd((results_neg[4]),n, k, lam, d)[0],\
+#         "Standardised standard deviation of error=", mean_and_sd((results_neg[4]),n, k, lam, d)[1],\
+#         "Acceptance ratio =" ,results_neg[5]) 
 # # Store the results from running the RMHMC alg
 # results_1 = RMHMC(L=10000,
 #                   eps = 1e-8, 
@@ -350,16 +383,16 @@ def RMHMC(L = 10000,
 # y_anim_1 = results_1[7][:,0]
 # x_anim_p_1 = np.array(results_1[8])[:,1]
 # y_anim_p_1 = np.array(results_1[8])[:,1]
-results_2 = RMHMC(L=10000,
-                  eps = 1e-8, 
-                  k = -1,
-                  lam = 1,
-                  n=1,
-                  tol = 1e-12,
-                  d = 0.1)
-x_anim_2 = np.array(results_2[7])[:,1]
-# print("x_anim", x_anim)
-y_anim_2 = np.array(results_2[7])[:,0]
+# results_2 = RMHMC(L=10000,
+#                   eps = 1e-8, 
+#                   k = -1,
+#                   lam = 1,
+#                   n=1,
+#                   tol = 1e-12,
+#                   d = 0.1)
+# x_anim_2 = np.array(results_2[7])[:,1]
+# # print("x_anim", x_anim)
+# y_anim_2 = np.array(results_2[7])[:,0]
 # x_anim_p_2 = np.array(results_2[8])[:,1]
 # y_anim_p_2 = np.array(results_2[8])[:,0]
 
@@ -397,14 +430,14 @@ y_anim_2 = np.array(results_2[7])[:,0]
 # animate_x_1.save("RMHMC_animate_x_1.gif", writer = 'pillow')
 
 # Setting up the plot for the dynamics
-fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(0,10000)
-fig.supxlabel("Leapfrog step")
-ax.set_ylim(0,4)
-fig.supylabel("x")
-ax.set_title("x dynamics for k = -1")
-ax.scatter(x_anim_2, y_anim_2)
-fig.savefig("RMHMC_ani_set_2.png")
+# fig, ax = plt.subplots(figsize=(10,10))
+# ax.set_xlim(0,10000)
+# fig.supxlabel("Leapfrog step")
+# ax.set_ylim(0,4)
+# fig.supylabel("x")
+# ax.set_title("x dynamics for k = -1")
+# ax.scatter(x_anim_2, y_anim_2)
+# fig.savefig("RMHMC_ani_set_2.png")
 
 # trace_2, = ax.plot([],[]) 
 
