@@ -10,6 +10,7 @@ eps = 0.001
 n = 10000
 k = 1
 lam = 1
+
 # def test_normal_p(n,m):
 #     '''
 #     Before running the HMC algorithm, it is sensible to check that genrating p values from a normal distribution gives a correct kinetic energy distribution.
@@ -60,6 +61,7 @@ def an_HMC_alg(k, lam, n, L, eps):
     exps_delH = []
     accepted = []
     for_animation_x = np.zeros((L,2),dtype=float)
+    for_animation_p = np.zeros((L,2),dtype=float)
     # Start the loop to generate x values
     for t in range(n+1):
         print("On iteration", t)
@@ -70,6 +72,8 @@ def an_HMC_alg(k, lam, n, L, eps):
         p_star = p - 0.5*eps*(k*x[t] + lam*x[t]**3)
         # print("p_star before leapfrog=",p_star)
         x_star = x[t] + eps*p_star/m
+        for_animation_x[0] = x_star, 0
+        for_animation_p[0] = p_star, 0
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L):
             p_star = p_star - eps*(k*x_star + lam*x_star**3)
@@ -78,6 +82,7 @@ def an_HMC_alg(k, lam, n, L, eps):
             # print("x_star", x_star)
             # print("change for x", eps*p_star/m)
             for_animation_x[l] = [x_star, l]
+            for_animation_p[l] = [p_star, l]
         # Compute the final step of the leapfrog method
         p_star = p_star - 0.5*eps*(k*x_star + lam*x_star**3)
         # Compute the acceptance ratio
@@ -122,54 +127,60 @@ def an_HMC_alg(k, lam, n, L, eps):
     # ax.set_title("Anharmonic potential from Metropolis")
     # ax.scatter(x_wbi, V_wbi )
     # fig.savefig("x_anHMC.png")
-    return x, KE_vals, exps_delH, errors, acc_rat, for_animation_x
+    return x, KE_vals, exps_delH, errors, acc_rat, for_animation_x, for_animation_p
 
 # print(an_HMC_alg(1,1,1000,L, eps))
 # print(an_HMC_alg(-1, 1, 1000, L, eps))
 # Find the expected value and standard deviation of x
-def mean_and_sd(x,m ,n):
-    '''
-    Given a list of x values, compute the expected value
-      and standardised standard deviation (rejecting burn-in).
-    '''
-    length = len(x)
-    values_to_use = x[math.ceil(length/10):]
-    stand_sd = m**0.5/(n-1)**0.5
-    return np.mean(values_to_use), stand_sd*np.std(values_to_use)
+# def mean_and_sd(x,m ,n):
+#     '''
+#     Given a list of x values, compute the expected value
+#       and standardised standard deviation (rejecting burn-in).
+#     '''
+#     length = len(x)
+#     values_to_use = x[math.ceil(length/10):]
+#     stand_sd = m**0.5/(n-1)**0.5
+#     return np.mean(values_to_use), stand_sd*np.std(values_to_use)
 
-print("Expected x =", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[0],1,100000)[0],\
-      "Standardised standard deviation of x=", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[0],1,100000)[1],\
-       "Expected KE = ",mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[1],1,100000)[0], \
-       "Standardised standard deviation of KE = ", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[1],1,100000)[1],\
-        "Expected exp(-delH)= " ,mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[2],1,100000)[0],\
-        "Standardised standard deviation of exp(-delH) = ", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[2],1,100000)[1],\
-        "Expected error =", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[3],1,100000)[0],\
-        "Standardised standard deviation of error=", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[3],1,100000)[1],\
-        "Acceptance ratio =" ,an_HMC_alg(k,lam,n,L,eps)[4])
+# print("Expected x =", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[0],1,100000)[0],\
+#       "Standardised standard deviation of x=", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[0],1,100000)[1],\
+#        "Expected KE = ",mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[1],1,100000)[0], \
+#        "Standardised standard deviation of KE = ", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[1],1,100000)[1],\
+#         "Expected exp(-delH)= " ,mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[2],1,100000)[0],\
+#         "Standardised standard deviation of exp(-delH) = ", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[2],1,100000)[1],\
+#         "Expected error =", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[3],1,100000)[0],\
+#         "Standardised standard deviation of error=", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[3],1,100000)[1],\
+#         "Acceptance ratio =" ,an_HMC_alg(k,lam,n,L,eps)[4])
 
-# # # Store the results from running the RMHMC alg
-# results_1 = an_HMC_alg(1, 1, n=1, L= L, eps = eps)
-# x_anim_1 = np.array(results_1[5])[:,1]
-# # print("x_anim", x_anim)
-# y_anim_1 = np.array(results_1[5])[:,0]
-# results_2 = an_HMC_alg(-1, 1, n=1, L= L, eps = eps)
-# x_anim_2 = np.array(results_2[5])[:,1]
-# # print("x_anim", x_anim)
-# y_anim_2 = np.array(results_2[5])[:,0]
-# # # print("y_anim", y_anim)
-# # stride = 20
-# # x_anim = x_anim[::stride]
-# # y_anim = y_anim[::stride]
+# # Store the results from running the RMHMC alg
+results_1 = an_HMC_alg(1, 1, n=1, L= L, eps = eps)
+x_anim_1 = np.array(results_1[5])[:,1]
+# print("x_anim", x_anim)
+y_anim_1 = np.array(results_1[5])[:,0]
+x_anim_1_p = np.array(results_1[6])[:,1]
+# print("x_anim", x_anim)
+y_anim_1_p = np.array(results_1[6])[:,0]
+results_2 = an_HMC_alg(-1, 1, n=1, L= L, eps = eps)
+x_anim_2 = np.array(results_2[5])[:,1]
+# print("x_anim", x_anim)
+y_anim_2 = np.array(results_2[5])[:,0]
+x_anim_2_p = np.array(results_2[6])[:,1]
+# print("x_anim", x_anim)
+y_anim_2_p = np.array(results_2[6])[:,0]
+# # print("y_anim", y_anim)
+# stride = 20
+# x_anim = x_anim[::stride]
+# y_anim = y_anim[::stride]
 
-# # Setting up the plot for the dynamics
-# fig, ax = plt.subplots(figsize=(10,10))
-# ax.set_xlim(0,L)
-# fig.supxlabel("Leapfrog step")
-# ax.set_ylim(-2,2)
-# fig.supylabel("x")
-# ax.set_title("x dynamics")
-# # ax.scatter(x_anim_1, y_anim_1)
-# # fig.savefig("anHMC_ani_set_1.png")
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,L)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(-2,2)
+fig.supylabel("x")
+ax.set_title("x dynamics with k > 0")
+ax.scatter(x_anim_1, y_anim_1)
+fig.savefig("anHMC_ani_set_1.png")
 # trace_1, = ax.plot([],[])
 # current_plot_1, = ax.plot([],[]) 
 
@@ -188,15 +199,33 @@ print("Expected x =", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[0],1,100000)[0],\
 # fig.canvas.manager.window.attributes('-topmost', 1)
 # animate_x.save("HMC_animate_x_1.gif", writer = 'pillow')
 
-# # Setting up the plot for the dynamics
-# fig, ax = plt.subplots(figsize=(10,10))
-# ax.set_xlim(0,L)
-# fig.supxlabel("Leapfrog step")
-# ax.set_ylim(-3,3)
-# fig.supylabel("Value")
-# ax.set_title("x dynamics")
-# # ax.scatter(x_anim_2, y_anim_2)
-# # fig.savefig("anHMC_ani_set_2.png")
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,L)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(-3,3)
+fig.supylabel("Value")
+ax.set_title("x dynamics with k < 0")
+ax.scatter(x_anim_2, y_anim_2)
+fig.savefig("anHMC_ani_set_2.png")
+
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,L)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(-3,3)
+fig.supylabel("Value")
+ax.set_title("p dynamics with k > 0")
+ax.scatter(x_anim_1_p, y_anim_1_p, c='#D32F2F')
+fig.savefig("anHMC_ani_set_1_p.png")
+
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,L)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(-3,3)
+fig.supylabel("Value")
+ax.set_title("p dynamics with k < 0")
+ax.scatter(x_anim_2_p, y_anim_2_p,c='#D32F2F')
+fig.savefig("anHMC_ani_set_2_p.png")
 
 # trace_2, = ax.plot([],[])
 # current_plot_2, = ax.plot([],[]) 
