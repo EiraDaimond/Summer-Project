@@ -29,7 +29,7 @@ def H(x, p, k,lam,d):
 def mean_and_sd(list, n,k, lam, d):
     '''
     Given a list of values, compute the expected value (with burn-in removed), 
-    and corresponding standardised standar deviation.
+    and corresponding standardised standard deviation.
     '''
     length = len(list)
     values_to_use = list[math.ceil(length/10):]
@@ -57,7 +57,7 @@ def RMHMC(L = 10000,
     Carry out the RMHMC algorithm to generate x values. 
     We will use the Generalised Leapfrog Method with the fixed point iteration.
     '''
-    # Initialise the x, KE, PE, exps_delH, errors, accepted values list
+    # Initialise the x, KE, PE, exps_delH, errors, accepted values, animation lists
     x = [np.random.normal(0, M(0,k, lam, d))] 
     KE_vals =[]
     PE_vals= [0]
@@ -67,14 +67,17 @@ def RMHMC(L = 10000,
     for_animation_x = np.zeros((L+1,2),dtype=float)
     for_animation_p = np.zeros((L+1,2), dtype = float)
     # Start the loop to generate x values
-    for t in range(n):
+    for t in (range(n-1)):
+        # print("x is=", x)
+        # print("x length=", len(x))
+        # print("x[",t,"] =", x[t])
         # Initialise the x_star and p_star lists
         x_stars = []
         p_stars = []
         # Initialise the V(x) lists
         V_x = []
         # Draw the momentum from a Normal distribution
-        p = np.random.normal(0, M(x[t],k, lam, d))
+        p = np.random.normal(0,M(x[t],k, lam, d))
         # Provide an initial guess value for p, initialise p_star
         p_guess = p 
         p_star = 0
@@ -85,19 +88,19 @@ def RMHMC(L = 10000,
         while count < max_iter:
             #("Count =",count)
             count = count +1 
-            # if count == max_iter:
-            #     print("Hit max iterations")
+            if count == max_iter:
+                print("Hit max iterations")
             p_star = p - 0.5*eps*\
                  (k*x[t] + lam*x[t]**3 \
                      + 0.5*p_guess**2*(-6*lam*x[t]) \
                 + 0.5*abs(-6*lam*x[t])\
-                     /M(x[t],k, lam, d))
+                      /M(x[t],k, lam, d))
             if p_star > 1e14:
-                #("BROKE p_star too big")
+                print("BROKE p_star too big")
                 break
             else:
                 if p_star < -1e14:
-                    #("BROKE p_star too big -ve")
+                    print("BROKE p_star too big -ve")
                     break
                 else:
                     #("1st step p_star is:",p_star)
@@ -109,7 +112,8 @@ def RMHMC(L = 10000,
                     else:
                         p_guess = p_star 
             #()
-        # ("Moving on from 1st step with p_star", p_star)  
+        print("Moving on from 1st step with p_star", p_star)  
+        print("Broke p for first step on count=", count)
         p_stars.append(p_star)
         for_animation_p[0] = [p_star, 1]
         # x convergence
@@ -119,11 +123,11 @@ def RMHMC(L = 10000,
         while count < max_iter:
             #("Count =",count)
             count = count + 1
-            # if count == max_iter:
-            #     print("Hit max iterations")
+            if count == max_iter:
+                print("Hit max iterations")
             #("1st step x_star is :", x_star)
             x_star = x[t] + 0.5*eps\
-                            *(p_star*M(x[t],k,lam, d)+p_star*M(x_guess,k, lam,d))
+                             *(p_star*M(x[t],k,lam, d)+p_star*M(x_guess,k, lam,d))
             #("x_star=", x_star)
             if x_star > 1e14:
                 #("BROKE x_star too big")
@@ -138,16 +142,14 @@ def RMHMC(L = 10000,
                         break
                     else:
                         x_guess = x_star
-            #()
-        #("Moving on from 1st step with x_star", x_star)
+        print("Moving on from 1st step with x_star", x_star)
+        print("Broke x for first step on count=", count)
         #("x_star is now", x_star)
         x_stars.append(x_star)
         V_x.append(an_V(x_star,k,lam))
         for_animation_x[0] = [x_star,1]
-        #("CODE WORKS UP TO HERE")
-        #()
         #("STARTING MIDDLE STEPS")
-        #()
+    #     #()
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L+1):
             # print("L=", l)
@@ -156,18 +158,21 @@ def RMHMC(L = 10000,
             p_star = 0
             count = 0
             #("On iter", l, "with p_star =", p_star, "p_guess =", p_guess)
-            # PROBLEM IS HERE WHERE P VALUES AREN'T CONVERGING
             while count < max_iter:
                 #("Count=",count)
                 count = count +1
-                # if count == max_iter:
-                #     print("Hit max iterations")
+                if count == max_iter:
+                    print("Hit max iterations")
                 #("Middle step iter[",l,"] p_star is :", p_star)
                 #("Using x_star:", x_star)
                 p_star = p_current - eps\
                                         *(k*x_star + lam*x_star**3\
                                              + 0.5*p_guess**2*(-6*lam*x_star)\
                                              + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam, d))
+                print("Change",eps\
+                                        *(k*x_star + lam*x_star**3\
+                                             + 0.5*p_guess**2*(-6*lam*x_star)\
+                                             + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam, d)) )
                 #("Calculated p_star =", p_star)
                 #("p_guess is", p_guess)
                 #("Difference in ps", abs(p_star - p_guess))
@@ -184,11 +189,10 @@ def RMHMC(L = 10000,
                             break 
                         else:
                             p_guess = p_star
-            #("Moving on from middle step iter [",l,"] with p_star", p_star)
+            print("Moving on from middle step iter [",l,"] with p_star", p_star)
+            print("Broke for p iteration", l," count=", count)
             p_stars.append(p_star)
             for_animation_p[l] = [p_star, l]
-            #()
-            #("STARTING x convergence")
             #()
             # x convergence
             x_current = x_star
@@ -198,13 +202,15 @@ def RMHMC(L = 10000,
             while count < max_iter:
                 #("Count=",count)
                 count = count+1
-                # if count == max_iter:
-                #     print("Hit max iterations")
+                if count == max_iter:
+                    print("Hit max iterations")
                 #     break
                 #("Middle step iter[",l,"] x_star is :", x_star)
                 #("Using p_star", p_star)
                 x_star = x_current + 0.5*eps\
                             *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d))
+                print("Change", 0.5*eps\
+                            *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d)) )
                 #("x_star=", x_star)
                 if x_star > 1e14:
                     print("BROKE x_star too big")
@@ -218,12 +224,11 @@ def RMHMC(L = 10000,
                 else:
                     x_guess = x_star
                 #()
-            # ("Moving on from middle step iter[",l,"] with x_star", x_star)
+            print("Moving on from middle step iter[",l,"] with x_star", x_star)
+            print("Broke for x iteration", l," count=", count)
             x_stars.append(x_star)
             V_x.append(an_V(x_star,k,lam))  
             for_animation_x[l] = [x_stars[-1],l]
-        #()
-        #("STARTING FINAL STEPS")
         #()
         # Compute the final step of the leapfrog method
         p_current = p_star
@@ -232,8 +237,8 @@ def RMHMC(L = 10000,
         while count < max_iter:
             #("Count=",count)
             count = count+1
-            # if count == max_iter:
-            #                 print("Hit max iterations")
+            if count == max_iter:
+                            print("Hit max iterations")
             p_star = p_current - 0.5*eps\
                                     *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
                                         + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
@@ -255,48 +260,49 @@ def RMHMC(L = 10000,
             #()
             for_animation_x[L] = [x_stars[-1],L]
             for_animation_p[L] = [p_stars[-1],L]
-        # Compute the acceptance ratio
-        r = np.exp(-H(x_star, p_star,k, lam, d) + H(x[t], p,k,lam, d))
-        # Draw W from a Uniform distribution
-        W = np.random.uniform(0, 1)            
-        # Carry out the Metropolis test
-        if W <= min(1, r):
             x.append(x_star)
-            accepted.append(x_star)
-        else:
-            x.append(x[t])
-        #print("x looks like:", x)
-        # Compute the KE and append to list
-        KE = K(x[-1],p_star,k,lam,d)
-        KE_vals.append(KE)
-        #print("KE_vals looks like:", KE_vals)
-        # Compute the PE and append to list
-        PE = an_V(x[-1],k,lam)
-        PE_vals.append(PE)
-        #print("PE_vals looks like:", PE_vals)
-        # Compute the exp(-delH)
-        exp_minus_del_H_ = np.exp(H(x[-1],p_star,k,lam,d) - H(x[t], p,k,lam,d))
-        exps_delH.append(exp_minus_del_H_)
-        #print("exps_minus_delH looks like:", exps_delH)
-        # Check reversibility
-        p_star = p_star + 0.5*eps\
-                            *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
-                                + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
-        x_star = x_star - 0.5*eps\
-                            *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d))
-        for l in range(1, L):
-            #print("On reversibility check, iter", l)
-            p_star = p_star + eps\
-                                *(k*x_star + lam*x_star**3\
-                                    + 0.5*p_guess**2*(-6*lam*x_star)\
-                                    + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
-            x_star = x_star - 0.5*eps\
-                            *(p_star*M(x[t],k,lam,d)+p_star*M(x_guess,k,lam,d))
-            p_backwards = p_star + 0.5*eps\
-                            *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
-                                + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
-            error = (p_backwards - p)
-            errors.append(error)
+    #     # Compute the acceptance ratio
+    #     r = np.exp(-H(x_star, p_star,k, lam, d) + H(x[t], p,k,lam, d))
+    #     # Draw W from a Uniform distribution
+    #     W = np.random.uniform(0, 1)            
+    #     # Carry out the Metropolis test
+    #     if W <= min(1, r):
+    #         x.append(x_star)
+    #         accepted.append(x_star)
+    #     else:
+    #         x.append(x[t])
+    #     #print("x looks like:", x)
+    #     # Compute the KE and append to list
+    #     KE = K(x[-1],p_star,k,lam,d)
+    #     KE_vals.append(KE)
+    #     #print("KE_vals looks like:", KE_vals)
+    #     # Compute the PE and append to list
+    #     PE = an_V(x[-1],k,lam)
+    #     PE_vals.append(PE)
+    #     #print("PE_vals looks like:", PE_vals)
+    #     # Compute the exp(-delH)
+    #     exp_minus_del_H_ = np.exp(H(x[-1],p_star,k,lam,d) - H(x[t], p,k,lam,d))
+    #     exps_delH.append(exp_minus_del_H_)
+    #     #print("exps_minus_delH looks like:", exps_delH)
+    #     # Check reversibility
+    #     p_star = p_star + 0.5*eps\
+    #                         *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
+    #                             + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
+    #     x_star = x_star - 0.5*eps\
+    #                         *(p_star*M(x_star,k,lam,d)+p_star*M(x_guess,k,lam,d))
+    #     for l in range(1, L):
+    #         #print("On reversibility check, iter", l)
+    #         p_star = p_star + eps\
+    #                             *(k*x_star + lam*x_star**3\
+    #                                 + 0.5*p_guess**2*(-6*lam*x_star)\
+    #                                 + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
+    #         x_star = x_star - 0.5*eps\
+    #                         *(p_star*M(x[t],k,lam,d)+p_star*M(x_guess,k,lam,d))
+    #         p_backwards = p_star + 0.5*eps\
+    #                         *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
+    #                             + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
+    #         error = (p_backwards - p)
+    #         errors.append(error)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
 
@@ -317,7 +323,7 @@ def RMHMC(L = 10000,
     # ax.scatter(x_wbi, V_wbi )
     # fig.savefig("x_RMHMC.png")
     # print()
-    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, p_star , for_animation_x, for_animation_p
+    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, for_animation_x, for_animation_p, p
 
 # print("x with k = 1", RMHMC(L = 10000,
 #             eps = 1e-8,
@@ -392,21 +398,19 @@ k = -0.1
 # y_anim_1 = results_1[7][:,0]
 # x_anim_p_1 = np.array(results_1[8])[:,1]
 # y_anim_p_1 = np.array(results_1[8])[:,1]
-results_2 = RMHMC(L=100,
-                  eps = 1e-3, 
-                  k = -1,
-                  lam = -1,
-                  n=1,
-                  tol = 1e-6,
-                  d = 0.01)
-x_anim_2 = np.array(results_2[7])[:,1]
-# print(max(x_anim_2))
-# print("x_anim", x_anim)
-y_anim_2 = np.array(results_2[7])[:,0]
+# results_2 = RMHMC(L=10,
+#                   eps = 0.01, 
+#                   k = -1,
+#                   lam = 1,
+#                   n=10,
+#                   tol = 1e-6,
+#                   d = 0.01)
+# x_anim_2 = np.array(results_2[6])[:,1]
+# y_anim_2 = np.array(results_2[6])[:,0]
 # print(y_anim_2)
-# print(max(y_anim_2))
-# x_anim_p_2 = np.array(results_2[8])[:,1]
-# y_anim_p_2 = np.array(results_2[8])[:,0]
+# x_anim_p_2 = np.array(results_2[7])[:,1]
+# y_anim_p_2 = np.array(results_2[7])[:,0]
+# print(y_anim_p_2)
 
 # print(x_anim_1)
 # print()
@@ -441,15 +445,15 @@ y_anim_2 = np.array(results_2[7])[:,0]
 # fig.canvas.manager.window.attributes('-topmost', 1)
 # animate_x_1.save("RMHMC_animate_x_1.gif", writer = 'pillow')
 
-# Setting up the plot for the dynamics
-fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(0,100)
-fig.supxlabel("Leapfrog step")
-ax.set_ylim(-2,2)
-fig.supylabel("x")
-ax.set_title("x dynamics for k = -0.1")
-ax.scatter(x_anim_2, y_anim_2)
-fig.savefig("RMHMC_ani_set_2.png")
+# # Setting up the plot for the dynamics
+# fig, ax = plt.subplots(figsize=(10,10))
+# ax.set_xlim(0,100)
+# fig.supxlabel("Leapfrog step")
+# ax.set_ylim(-2,2)
+# fig.supylabel("x")
+# ax.set_title("x dynamics for k = -1")
+# ax.scatter(x_anim_2, y_anim_2)
+# fig.savefig("RMHMC_ani_set_2.png")
 
 # trace_2, = ax.plot([],[]) 
 
@@ -498,11 +502,11 @@ fig.savefig("RMHMC_ani_set_2.png")
 # fig, ax = plt.subplots(figsize=(10,10))
 # ax.set_xlim(0,10000)
 # fig.supxlabel("Leapfrog step")
-# ax.set_ylim(-0.001,0.001)
+# ax.set_ylim(-1,1)
 # fig.supylabel("p")
 # ax.set_title("p dynamics for k = -1")
-# # ax.scatter(x_anim_p_2, y_anim_p_2)
-# # fig.savefig("RMHMC_ani_set_4.png")
+# ax.scatter(x_anim_p_2, y_anim_p_2)
+# fig.savefig("RMHMC_ani_set_4.png")
 
 # trace_4, = ax.plot([],[])
 
@@ -583,10 +587,11 @@ fig.savefig("RMHMC_ani_set_2.png")
 # fig.savefig("s_exp_x.png")
 # plt.close(fig)
 
-# Parameter space testing
-k_lam_vals = [-10, -5, -1, -0.1]
-d_vals = [0.001, 0.01, 0.1, 1]
-grads = []
+# # Parameter space testing
+
+# k_lam_vals = [-10, -5, -1, -0.1]
+# d_vals = [0.001, 0.01, 0.1, 1]
+# grads = []
 
 # for i in range(len(k_lam_vals)):
 #         for j in range(len(k_lam_vals)):
@@ -603,12 +608,40 @@ grads = []
 #             grads.append([grad, (i, j , k)])
 #             print("Grad for k =", k_lam_vals[i], "lam =", k_lam_vals[j], "d = ", k_lam_vals[k], "=", grad)
 # print(grads)
-# ''' Results:
-# -
-# '''
 
+# # Epsilon and L testing
+
+# epsilon = [1e-5, 5e-5, 1e-4, 5e-4, 0.001, 0.005, 0.01, 0.05, 0.1,0.5, 1]
+# L_vals = [100000, 50000, 10000,5000, 1000,500, 100,50, 10, 5, 1]
+# grads = []
+
+# for i in range(len(epsilon)):
+#         for j in range(len(L_vals)):
+#                 results = RMHMC(L=j,
+#                     eps = i, 
+#                     k = -1,
+#                     lam = -1,
+#                     n=1,
+#                     tol = 1e-6,
+#                     d = 0.01)
+#                 x_vals = np.array(results[7])[:,0]
+#                 grad = (max(x_vals) - min(x_vals))/100
+#                 grads.append([grad, (i, j , k)])
+#                 print("Grad for eps =", epsilon[i], "L =", L_vals[j], "is", grad)
+# print(grads)
+
+results = RMHMC(L = 77,
+            eps = 0.01,
+            k = -1,
+            lam = 1,
+            n = 2,
+            tol = 1e-6,
+            d = 0.01)
+print("x=",results[0])
+print("p starting=", results[8])
+# print("x in leapfrog=",results[6])
+# print("p in leapfrog=",results[7])
 '''
 COMMENTS:
-- If epsilon too big then overflow error... x_star values get too large and don't converge.
-- If epsilon too small, change is very very small.
+- If starting p is too large, algoprithm crashes..... anyway to make p values smaller/ narrow the distrbution.
 '''
