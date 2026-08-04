@@ -14,3 +14,8 @@ for i in range(100):
     print("x is", x)
     M_vals.append(M(x, -1, 1, 0.01))
 print(M_vals)
+
+p_star = p_current - eps\
+                        *(k*x_star + lam*x_star**3\
+                                             + 0.5*p_guess**2*(-6*lam*x_star)\
+                                             + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam, d))

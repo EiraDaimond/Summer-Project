@@ -169,10 +169,10 @@ def RMHMC(L = 10000,
                                         *(k*x_star + lam*x_star**3\
                                              + 0.5*p_guess**2*(-6*lam*x_star)\
                                              + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam, d))
-                print("Change",eps\
-                                        *(k*x_star + lam*x_star**3\
-                                             + 0.5*p_guess**2*(-6*lam*x_star)\
-                                             + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam, d)) )
+                # print("Change",eps\
+                #                         *(k*x_star + lam*x_star**3\
+                #                              + 0.5*p_guess**2*(-6*lam*x_star)\
+                #                              + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam, d)) )
                 #("Calculated p_star =", p_star)
                 #("p_guess is", p_guess)
                 #("Difference in ps", abs(p_star - p_guess))
@@ -209,8 +209,8 @@ def RMHMC(L = 10000,
                 #("Using p_star", p_star)
                 x_star = x_current + 0.5*eps\
                             *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d))
-                print("Change", 0.5*eps\
-                            *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d)) )
+                # print("Change", 0.5*eps\
+                #             *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d)) )
                 #("x_star=", x_star)
                 if x_star > 1e14:
                     print("BROKE x_star too big")
@@ -630,7 +630,7 @@ k = -0.1
 #                 print("Grad for eps =", epsilon[i], "L =", L_vals[j], "is", grad)
 # print(grads)
 
-results = RMHMC(L = 77,
+results = RMHMC(L = 80,
             eps = 0.01,
             k = -1,
             lam = 1,
@@ -643,5 +643,5 @@ print("p starting=", results[8])
 # print("p in leapfrog=",results[7])
 '''
 COMMENTS:
-- If starting p is too large, algoprithm crashes..... anyway to make p values smaller/ narrow the distrbution.
+- If starting p is too large (>1), algorithm crashes.
 '''
