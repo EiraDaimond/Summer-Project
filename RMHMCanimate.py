@@ -15,11 +15,11 @@ def G(x,k,lam):
         
 # Define M (including delta).... to be used to avoid division by 0 errors
 def M(x,k, lam, d):
-    return np.sqrt(abs(G(x,k,lam)**2+d**2))
+    return np.sqrt(G(x,k,lam)**2+d**2)
 
 # Define the kinetic energy term (include correction term)
 def K(x,p, k, lam, d):
-    return 0.5*p*M(x,k, lam,d)*p + 0.5*np.log(np.abs(M(x,k,lam, d)))
+    return 0.5*p**2/M(x,k, lam,d) + 0.5*np.log(M(x,k,lam, d))
 
 # Define the Hamiltonian
 def H(x, p, k,lam,d):
@@ -58,26 +58,28 @@ def RMHMC(L = 10000,
     We will use the Generalised Leapfrog Method with the fixed point iteration.
     '''
     # Initialise the x, KE, PE, exps_delH, errors, accepted values, animation lists
-    x = [np.random.normal(0, M(0,k, lam, d))] 
+    x = [np.random.normal(0, np.sqrt(M(0,k, lam, d)))] 
+    p_vals = []
     KE_vals =[]
     PE_vals= [0]
     exps_delH = []
-    errors = []
+    errors_p = []
+    errors_x = []
     accepted = []
     for_animation_x = np.zeros((L+1,2),dtype=float)
     for_animation_p = np.zeros((L+1,2), dtype = float)
     # Start the loop to generate x values
     for t in (range(n-1)):
-        # print("x is=", x)
-        # print("x length=", len(x))
-        # print("x[",t,"] =", x[t])
+        print("x is=", x)
+        print("x length=", len(x))
+        print("x[",t,"] =", x[t])
         # Initialise the x_star and p_star lists
         x_stars = []
         p_stars = []
         # Initialise the V(x) lists
         V_x = []
         # Draw the momentum from a Normal distribution
-        p = np.random.normal(0,M(x[t],k, lam, d))
+        p = np.random.normal(0,np.sqrt(M(x[t],k, lam, d)))
         # Provide an initial guess value for p, initialise p_star
         p_guess = p 
         p_star = 0
@@ -91,9 +93,9 @@ def RMHMC(L = 10000,
             if count == max_iter:
                 print("Hit max iterations")
             p_star = p - 0.5*eps*\
-                 (k*x[t] + lam*x[t]**3 \
-                     + 0.5*p_guess**2*(6*lam*x[t]) \
-                + 0.5*abs(-6*lam*x[t])\
+                 ((k*x[t] + lam*x[t]**3 \
+                     + 0.5*p_guess**2*(G(x[t],k,lam))*6*lam*x[t])/(M(x[t], k, lam, d))**2 \
+                + 0.5*(6*lam*x[t])\
                       /M(x[t],k, lam, d))
             if p_star > 1e14:
                 print("BROKE p_star too big")
@@ -127,7 +129,7 @@ def RMHMC(L = 10000,
                 print("Hit max iterations")
             #("1st step x_star is :", x_star)
             x_star = x[t] + 0.5*eps\
-                             *(p_star*M(x[t],k,lam, d)+p_star*M(x_guess,k, lam,d))
+                             *(p_star/M(x[t],k,lam, d)+p_star/M(x_guess,k, lam,d))
             #("x_star=", x_star)
             if x_star > 1e14:
                 #("BROKE x_star too big")
@@ -165,10 +167,11 @@ def RMHMC(L = 10000,
                     print("Hit max iterations")
                 #("Middle step iter[",l,"] p_star is :", p_star)
                 #("Using x_star:", x_star)
-                p_star = p_current - eps\
-                                        *(k*x_star + lam*x_star**3\
-                                             + 0.5*p_guess**2*(6*lam*x_star)\
-                                             + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam, d))
+                p_star = p_current - eps*\
+                                 ((k*x_star + lam*x_star**3 \
+                                     + 0.5*p_guess**2*(G(x_star,k,lam))*6*lam*x_star)/(M(x_star, k, lam, d))**2 \
+                                + 0.5*(6*lam*x_star)\
+                                      /M(x_star,k, lam, d))
                 # print("Change",eps\
                 #                         *(k*x_star + lam*x_star**3\
                 #                              + 0.5*p_guess**2*(6*lam*x_star)\
@@ -212,7 +215,7 @@ def RMHMC(L = 10000,
                 #("Middle step iter[",l,"] x_star is :", x_star)
                 #("Using p_star", p_star)
                 x_star = x_current + 0.5*eps\
-                            *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d))
+                            *(p_star/M(x_current,k,lam,d)+p_star/M(x_guess,k,lam,d))
                 # print("Change", 0.5*eps\
                 #             *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d)) )
                 #("x_star=", x_star)
@@ -243,9 +246,11 @@ def RMHMC(L = 10000,
             count = count+1
             if count == max_iter:
                             print("Hit max iterations")
-            p_star = p_current - 0.5*eps\
-                                    *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(6*lam*x_star)\
-                                        + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
+                            p_star = p_current - 0.5*eps*\
+                                                    ((k*x_star + lam*x_star**3 \
+                                                                 + 0.5*p_guess**2*(G(x_star,k,lam))*6*lam*x_star)/(M(x_star, k, lam, d))**2 \
+                                                            + 0.5*(6*lam*x_star)\
+                                                                  /M(x_star,k, lam, d))
             #("p_star is :", p_star)
             #("p_guess is", p_guess)
             #("Difference in ps:", abs(p_star - p_guess))
@@ -265,48 +270,55 @@ def RMHMC(L = 10000,
             for_animation_x[L] = [x_stars[-1],L]
             for_animation_p[L] = [p_stars[-1],L]
             x.append(x_star)
-    #     # Compute the acceptance ratio
-    #     r = np.exp(-H(x_star, p_star,k, lam, d) + H(x[t], p,k,lam, d))
-    #     # Draw W from a Uniform distribution
-    #     W = np.random.uniform(0, 1)            
-    #     # Carry out the Metropolis test
-    #     if W <= min(1, r):
-    #         x.append(x_star)
-    #         accepted.append(x_star)
-    #     else:
-    #         x.append(x[t])
-    #     #print("x looks like:", x)
-    #     # Compute the KE and append to list
-    #     KE = K(x[-1],p_star,k,lam,d)
-    #     KE_vals.append(KE)
-    #     #print("KE_vals looks like:", KE_vals)
-    #     # Compute the PE and append to list
-    #     PE = an_V(x[-1],k,lam)
-    #     PE_vals.append(PE)
-    #     #print("PE_vals looks like:", PE_vals)
-    #     # Compute the exp(-delH)
-    #     exp_minus_del_H_ = np.exp(H(x[-1],p_star,k,lam,d) - H(x[t], p,k,lam,d))
-    #     exps_delH.append(exp_minus_del_H_)
-    #     #print("exps_minus_delH looks like:", exps_delH)
-    #     # Check reversibility
-    #     p_star = p_star + 0.5*eps\
-    #                         *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
-    #                             + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
-    #     x_star = x_star - 0.5*eps\
-    #                         *(p_star*M(x_star,k,lam,d)+p_star*M(x_guess,k,lam,d))
-    #     for l in range(1, L):
-    #         #print("On reversibility check, iter", l)
-    #         p_star = p_star + eps\
-    #                             *(k*x_star + lam*x_star**3\
-    #                                 + 0.5*p_guess**2*(-6*lam*x_star)\
-    #                                 + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
-    #         x_star = x_star - 0.5*eps\
-    #                         *(p_star*M(x[t],k,lam,d)+p_star*M(x_guess,k,lam,d))
-    #         p_backwards = p_star + 0.5*eps\
-    #                         *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
-    #                             + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
-    #         error = (p_backwards - p)
-    #         errors.append(error)
+        # Compute the acceptance ratio
+        r = np.exp(-H(x_star, p_star,k, lam, d) + H(x[t], p,k,lam, d))
+        exps_delH.append(r)
+        # Draw W from a Uniform distribution
+        W = np.random.uniform(0, 1)            
+        # Carry out the Metropolis test
+        if W <= min(1, r):
+            x.append(x_star)
+            accepted.append(x_star)
+            p_vals.append(p_star)
+        else:
+            x.append(x[t])
+            p_vals.append(p)
+        #print("x looks like:", x)
+        # Compute the KE and append to list
+        KE = K(x[-1],p_star,k,lam,d)
+        KE_vals.append(KE)
+        #print("KE_vals looks like:", KE_vals)
+        # Compute the PE and append to list
+        PE = an_V(x[-1],k,lam)
+        PE_vals.append(PE)
+        #print("PE_vals looks like:", PE_vals)
+        #print("exps_minus_delH looks like:", exps_delH)
+        # Check reversibility
+        p_star = p_current - 0.5*eps*\
+                                    ((k*x_star + lam*x_star**3 \
+                                                                 + 0.5*p_guess**2*(G(x_star,k,lam))*6*lam*x_star)/(M(x_star, k, lam, d))**2 \
+                                                                    + 0.5*(6*lam*x_star)\
+                                                                          /M(x_star,k, lam, d))
+        x_star = x_star - 0.5*eps\
+                            *(p_star/M(x_star,k,lam,d)+p_star/M(x_guess,k,lam,d))
+        for l in range(1, L):
+            #print("On reversibility check, iter", l)
+            p_star = p_current - eps*\
+                                ((k*x_star + lam*x_star**3 \
+                                                        + 0.5*p_guess**2*(G(x_star,k,lam))*6*lam*x_star)/(M(x_star, k, lam, d))**2 \
+                                                                        + 0.5*(6*lam*x_star)\
+                                                                              /M(x_star,k, lam, d))
+            x_star = x_star - 0.5*eps\
+                            *(p_star/M(x_star,k,lam,d)+p_star/M(x_guess,k,lam,d))
+            p_backwards = p_star - 0.5*eps*\
+                                            ((k*x_star + lam*x_star**3 \
+                                                            + 0.5*p_star**2*(G(x_star,k,lam))*6*lam*x_star)/(M(x_star, k, lam, d))**2 \
+                                                                    + 0.5*(6*lam*x_star)\
+                                                                            /M(x_star,k, lam, d))
+            error_p = (p_backwards - p)
+            errors_p.append(error_p)
+            error_x = x_star - x[-2]
+            errors_x.append(error_x)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
 
@@ -327,7 +339,7 @@ def RMHMC(L = 10000,
     # ax.scatter(x_wbi, V_wbi )
     # fig.savefig("x_RMHMC.png")
     # print()
-    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, for_animation_x, for_animation_p, p
+    return x, p_vals, KE_vals, PE_vals, exps_delH, errors_p, errors_x, acc_rat, for_animation_x, for_animation_p, p
 
 # print("x with k = 1", RMHMC(L = 10000,
 #             eps = 1e-8,
@@ -402,19 +414,19 @@ k = -0.1
 # y_anim_1 = results_1[7][:,0]
 # x_anim_p_1 = np.array(results_1[8])[:,1]
 # y_anim_p_1 = np.array(results_1[8])[:,1]
-# results_2 = RMHMC(L=10,
-#                   eps = 0.01, 
-#                   k = -1,
-#                   lam = 1,
-#                   n=10,
-#                   tol = 1e-6,
-#                   d = 0.01)
-# x_anim_2 = np.array(results_2[6])[:,1]
-# y_anim_2 = np.array(results_2[6])[:,0]
-# print(y_anim_2)
-# x_anim_p_2 = np.array(results_2[7])[:,1]
-# y_anim_p_2 = np.array(results_2[7])[:,0]
-# print(y_anim_p_2)
+results_2 = RMHMC(L=100,
+                  eps = 0.01, 
+                  k = -1,
+                  lam = 1,
+                  n=10,
+                  tol = 1e-6,
+                  d = 0.1)
+x_anim_2 = np.array(results_2[8])[:,1]
+y_anim_2 = np.array(results_2[8])[:,0]
+print(y_anim_2)
+x_anim_p_2 = np.array(results_2[9])[:,1]
+y_anim_p_2 = np.array(results_2[9])[:,0]
+print(y_anim_p_2)
 
 # print(x_anim_1)
 # print()
@@ -449,15 +461,15 @@ k = -0.1
 # fig.canvas.manager.window.attributes('-topmost', 1)
 # animate_x_1.save("RMHMC_animate_x_1.gif", writer = 'pillow')
 
-# # Setting up the plot for the dynamics
-# fig, ax = plt.subplots(figsize=(10,10))
-# ax.set_xlim(0,100)
-# fig.supxlabel("Leapfrog step")
-# ax.set_ylim(-2,2)
-# fig.supylabel("x")
-# ax.set_title("x dynamics for k = -1")
-# ax.scatter(x_anim_2, y_anim_2)
-# fig.savefig("RMHMC_ani_set_2.png")
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,100)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(-2,2)
+fig.supylabel("x")
+ax.set_title("x dynamics for k = -1")
+ax.scatter(x_anim_2, y_anim_2)
+fig.savefig("RMHMC_ani_set_2.png")
 
 # trace_2, = ax.plot([],[]) 
 
@@ -476,15 +488,15 @@ k = -0.1
 # fig.canvas.manager.window.attributes('-topmost', 1)
 # animate_x_2.save("RMHMC_animate_x_2.gif", writer = 'pillow')
 
-# # Setting up the plot for the dynamics
+# Setting up the plot for the dynamics
 # fig, ax = plt.subplots(figsize=(10,10))
 # ax.set_xlim(0,10000)
 # fig.supxlabel("Leapfrog step")
 # ax.set_ylim(-0.001,0.001)
 # fig.supylabel("p")
 # ax.set_title("p dynamics for k =1 ")
-# # ax.scatter(x_anim_p_1, y_anim_p_1)
-# # fig.savefig("RMHMC_ani_set_3.png")
+# ax.scatter(x_anim_p_1, y_anim_p_1)
+# fig.savefig("RMHMC_ani_set_3.png")
 # trace_3, = ax.plot([],[]) 
 
 # # Functions for the dynamics
@@ -502,15 +514,15 @@ k = -0.1
 # fig.canvas.manager.window.attributes('-topmost', 1)
 # animate_p_1.save("RMHMC_animate_p_1.gif", writer = 'pillow')
 
-# # Setting up the plot for the dynamics
-# fig, ax = plt.subplots(figsize=(10,10))
-# ax.set_xlim(0,10000)
-# fig.supxlabel("Leapfrog step")
-# ax.set_ylim(-1,1)
-# fig.supylabel("p")
-# ax.set_title("p dynamics for k = -1")
-# ax.scatter(x_anim_p_2, y_anim_p_2)
-# fig.savefig("RMHMC_ani_set_4.png")
+# Setting up the plot for the dynamics
+fig, ax = plt.subplots(figsize=(10,10))
+ax.set_xlim(0,100)
+fig.supxlabel("Leapfrog step")
+ax.set_ylim(-1,1)
+fig.supylabel("p")
+ax.set_title("p dynamics for k = -1")
+ax.scatter(x_anim_p_2, y_anim_p_2)
+fig.savefig("RMHMC_ani_set_4.png")
 
 # trace_4, = ax.plot([],[])
 
@@ -638,7 +650,7 @@ results = RMHMC(L = 100,
             eps = 0.01,
             k = -1,
             lam = 1,
-            n = 2,
+            n = 10,
             tol = 1e-6,
             d = 0.01)
 print("x=",results[0])

@@ -60,9 +60,11 @@ def HMC(n,L,eps):
     '''
     # Initialise the x values, KE values, PE values, errors, and the accepted values lists
     x = [0]
+    p_vals = []
     KE_vals = []
     PE_vals =[]
-    errors = []
+    errors_p = []
+    errors_x = []
     exps_delH = []
     accepted = []
     for_animation_x = np.zeros((L,2),dtype=float)
@@ -94,22 +96,22 @@ def HMC(n,L,eps):
         p_star = p_star - 0.5*eps*k*x_star
         # Compute the acceptance ratio
         r = np.exp(-H(x_star, p_star) + H(x[t],p))
+        exps_delH.append(r)
         # Draw W from a Uniform distribution
         W = np.random.uniform(0,1)
         # Carry out the Metropolis test
         if W <= min(1,r):
             x.append(x_star)
             accepted.append(x_star)
+            p_vals.append(p_star)
         else:
             x.append(x[t])
+            p_vals.append(p)
         # Compute the KE and PE terms for this trajectory and append to list
-        KE = 0.5*p_star**2/m
-        PE = 0.5*k*x[t]**2 
+        KE = 0.5*p_vals[-1]**2/m
+        PE = 0.5*k*x[-1]**2 
         KE_vals.append(KE)
         PE_vals.append(PE)
-        # Calculate exp(-delH) terms
-        exp_minus_del_H_ = np.exp(H(x[-1],p_star) - H(x[t], p))
-        exps_delH.append(exp_minus_del_H_)
         # # Check reversibility
         # p_star = p_star + 0.5*eps*k*x[t]
         # x_star = x_star - eps*p_star/m
@@ -117,12 +119,14 @@ def HMC(n,L,eps):
         #     p_star = p_star + eps*k*x_star
         #     x_star = x_star - eps*p_star/m
         # p_backwards = p_star + 0.5*eps*k*x_star
-        # error = (p_backwards - p)
-        # errors.append(error)
+        # error_p = (p_backwards - p)
+        # errors_p.append(error_p)
+        # error_x = x_star - x[-2]
+        #errors_x.append(error_x)
         # print(x)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
-    return x, KE_vals, PE_vals, exps_delH, errors, acc_rat, for_animation_x, for_animation_p
+    return x, KE_vals, PE_vals, exps_delH, errors_p, errors_x, acc_rat, for_animation_x, for_animation_p
 
 # # Find the expected value of x and corresponding standardised standard deviation
 # def mean_and_sd(x,m,n):

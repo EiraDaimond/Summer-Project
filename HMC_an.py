@@ -56,8 +56,10 @@ def an_HMC_alg(k, lam, n, L, eps):
     
     # Initialise the x values, KE values, errors, and the accepted values lists
     x = [1]
+    p_vals = []
     KE_vals = []
-    errors = []
+    errors_p = []
+    errors_x = []
     exps_delH = []
     accepted = []
     for_animation_x = np.zeros((L,2),dtype=float)
@@ -87,29 +89,31 @@ def an_HMC_alg(k, lam, n, L, eps):
         p_star = p_star - 0.5*eps*(k*x_star + lam*x_star**3)
         # Compute the acceptance ratio
         r = np.exp(-an_H(x_star, p_star,m ) + an_H(x[t], p,m))
+        exps_delH.append(r)
         # Draw W from a Uniform distribution
         W = np.random.uniform(0, 1)
         # Carry out the Metropolis test
         if W <= min(1, r):
             x.append(x_star)
             accepted.append(x_star)
+            p_vals.append(p_star)
         else:
             x.append(x[t])
+            p_vals.append(p)
         # Compute the KE terms for this trajectory and append to list
-        KE = 0.5*p_star**2/m
+        KE = 0.5*p_vals[-1]**2/m
         KE_vals.append(KE)
-        # Calculate exp(-delH) terms
-        exp_minus_del_H_ = np.exp(an_H(x_star,p_star,m) - an_H(x[t], p,m))
-        exps_delH.append(exp_minus_del_H_)
         # Check reversibility
-        p_star = p_star + 0.5*eps*(k*x[t] + lam*x[t]**3)
+        p_star = p_star + 0.5*eps*(k*x_star + lam*x_star**3)
         x_star = x_star - eps*p_star/m
         for l in range(1, L):
             p_star = p_star + eps*(k*x_star + lam*x_star**3)
             x_star = x_star - eps*p_star/m
         p_backwards = p_star + 0.5*eps*(k*x_star + lam*x_star**3)
-        error = (p_backwards - p)
-        errors.append(error)
+        error_p = (p_backwards - p)
+        errors_p.append(error_p)
+        error_x = x_star - x[-2]
+        errors_x.append(error_x)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100    
 
@@ -127,7 +131,7 @@ def an_HMC_alg(k, lam, n, L, eps):
     # ax.set_title("Anharmonic potential from Metropolis")
     # ax.scatter(x_wbi, V_wbi )
     # fig.savefig("x_anHMC.png")
-    return x, KE_vals, exps_delH, errors, acc_rat, for_animation_x, for_animation_p
+    return x, KE_vals, exps_delH, errors_p, errors_x, acc_rat, for_animation_x, for_animation_p
 
 # print(an_HMC_alg(1,1,1000,L, eps))
 # print(an_HMC_alg(-1, 1, 1000, L, eps))
