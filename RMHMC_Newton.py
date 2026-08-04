@@ -18,12 +18,22 @@ def dHdx(x, p):
 # Initialise 
 x = [1]
 p = 0
-p_star = 0.5
+p_star = 4
 p_star_vals = []
 for l in range(L):
-    f = p_star - p + 0.5*eps*dHdx(x[0],p_star)
-    f_prime = 1 + 0.5*eps*p_star*(6*lam*x[0])
+    print("Iteration", l)
+    count = 0
+    max_iters = 100
+    while count < max_iters:
+        count = count +1
+        print("count", count)
+        f = p_star - p + 0.5*eps*dHdx(x[0],p_star)
+        f_prime = 1 + 0.5*eps*p_star*(6*lam*x[0])
 
-    p_star = p_star - f/f_prime
-    p_star_vals.append(p_star)
-print(p_star_vals)
+        p_star = p_star - f/f_prime
+        print("p_star is", p_star)
+        print("f is", f)
+        if f < 1e-6:
+            p_star_vals.append(p_star)
+            break
+# print(p_star_vals)
