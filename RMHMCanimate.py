@@ -92,7 +92,7 @@ def RMHMC(L = 10000,
                 print("Hit max iterations")
             p_star = p - 0.5*eps*\
                  (k*x[t] + lam*x[t]**3 \
-                     + 0.5*p_guess**2*(-6*lam*x[t]) \
+                     + 0.5*p_guess**2*(6*lam*x[t]) \
                 + 0.5*abs(-6*lam*x[t])\
                       /M(x[t],k, lam, d))
             if p_star > 1e14:
@@ -167,11 +167,11 @@ def RMHMC(L = 10000,
                 #("Using x_star:", x_star)
                 p_star = p_current - eps\
                                         *(k*x_star + lam*x_star**3\
-                                             + 0.5*p_guess**2*(-6*lam*x_star)\
+                                             + 0.5*p_guess**2*(6*lam*x_star)\
                                              + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam, d))
                 # print("Change",eps\
                 #                         *(k*x_star + lam*x_star**3\
-                #                              + 0.5*p_guess**2*(-6*lam*x_star)\
+                #                              + 0.5*p_guess**2*(6*lam*x_star)\
                 #                              + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam, d)) )
                 #("Calculated p_star =", p_star)
                 #("p_guess is", p_guess)
@@ -190,6 +190,10 @@ def RMHMC(L = 10000,
                         else:
                             p_guess = p_star
             print("Moving on from middle step iter [",l,"] with p_star", p_star)
+            print("Change",eps\
+                                                    *(k*x_star + lam*x_star**3\
+                                                         + 0.5*p_guess**2*(6*lam*x_star)\
+                                                         + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam, d)) )
             print("Broke for p iteration", l," count=", count)
             p_stars.append(p_star)
             for_animation_p[l] = [p_star, l]
@@ -240,7 +244,7 @@ def RMHMC(L = 10000,
             if count == max_iter:
                             print("Hit max iterations")
             p_star = p_current - 0.5*eps\
-                                    *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(-6*lam*x_star)\
+                                    *(k*x_star + lam*x_star**3 + 0.5*p_guess**2*(6*lam*x_star)\
                                         + 0.5*abs(-6*lam*x_star)/M(x_star,k,lam,d))
             #("p_star is :", p_star)
             #("p_guess is", p_guess)
@@ -630,7 +634,7 @@ k = -0.1
 #                 print("Grad for eps =", epsilon[i], "L =", L_vals[j], "is", grad)
 # print(grads)
 
-results = RMHMC(L = 80,
+results = RMHMC(L = 100,
             eps = 0.01,
             k = -1,
             lam = 1,
