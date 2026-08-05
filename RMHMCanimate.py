@@ -201,77 +201,77 @@ def RMHMC(L = 10000,
             # print("Broke for p iteration", l," count=", count)
             p_stars.append(p_star)
             for_animation_p[l] = [p_star, l]
+            ()
+            # x convergence
+            x_current = x_star
+            x_guess = x_star
+            x_star = 0
+            count = 1
+            while count < max_iter:
+                #("Count=",count)
+                count = count+1
+                if count == max_iter:
+                    print("Hit max iterations")
+                #     break
+                #("Middle step iter[",l,"] x_star is :", x_star)
+                #("Using p_star", p_star)
+                x_star = x_current + 0.5*eps\
+                            *(p_star/M(x_current,k,lam,d)+p_star/M(x_guess,k,lam,d))
+                # print("Change", 0.5*eps\
+                #             *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d)) )
+                #("x_star=", x_star)
+                if x_star > 1e14:
+                    print("BROKE x_star too big")
+                    break
+                elif x_star < -1e14:
+                    print("BROKE x_star too big -ve")
+                    break
+                elif abs(x_star - x_guess) < tol:
+                    #("STOPPING while loop for x_star")
+                    break
+                else:
+                    x_guess = x_star
+                #()
+            ("Moving on from middle step iter[",l,"] with x_star", x_star)
+            #("Broke for x iteration", l," count=", count)
+            x_stars.append(x_star)
+            V_x.append(an_V(x_star,k,lam))  
+            for_animation_x[l] = [x_stars[-1],l]
+            # print(for_animation_x)
+        #()
+        # Compute the final step of the leapfrog method
+        p_current = p_star
+        p_guess = p_star
+        count = 0
+        while count < max_iter:
+            #("Count=",count)
+            count = count+1
+            if count == max_iter:
+                            print("Hit max iterations")
+                            p_star = p_current - 0.5*eps*\
+                                                    ((k*x_star + lam*x_star**3 \
+                                                                 + 0.5*p_guess**2*(G(x_star,k,lam))*6*lam*x_star)/(M(x_star, k, lam, d))**2 \
+                                                            + 0.5*(6*lam*x_star)\
+                                                                  /M(x_star,k, lam, d))
+            #("p_star is :", p_star)
+            #("p_guess is", p_guess)
+            #("Difference in ps:", abs(p_star - p_guess))
+            if p_star > 1e14:
+                print("BROKE p_star too big")
+                break
+            else:
+                if p_star < -1e14:
+                    print("BROKE p_star too big -ve")
+                    break
+                else:
+                    if abs(p_star - p_guess) < tol:
+                        break
+                    else:
+                        p_guess = p_star
             #()
-    #         # x convergence
-    #         x_current = x_star
-    #         x_guess = x_star
-    #         x_star = 0
-    #         count = 1
-    #         while count < max_iter:
-    #             #("Count=",count)
-    #             count = count+1
-    #             if count == max_iter:
-    #                 print("Hit max iterations")
-    #             #     break
-    #             #("Middle step iter[",l,"] x_star is :", x_star)
-    #             #("Using p_star", p_star)
-    #             x_star = x_current + 0.5*eps\
-    #                         *(p_star/M(x_current,k,lam,d)+p_star/M(x_guess,k,lam,d))
-    #             # print("Change", 0.5*eps\
-    #             #             *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d)) )
-    #             #("x_star=", x_star)
-    #             if x_star > 1e14:
-    #                 print("BROKE x_star too big")
-    #                 break
-    #             elif x_star < -1e14:
-    #                 print("BROKE x_star too big -ve")
-    #                 break
-    #             elif abs(x_star - x_guess) < tol:
-    #                 #("STOPPING while loop for x_star")
-    #                 break
-    #             else:
-    #                 x_guess = x_star
-    #             #()
-    #         ("Moving on from middle step iter[",l,"] with x_star", x_star)
-    #         #("Broke for x iteration", l," count=", count)
-    #         x_stars.append(x_star)
-    #         V_x.append(an_V(x_star,k,lam))  
-    #         for_animation_x[l] = [x_stars[-1],l]
-    #         # print(for_animation_x)
-    #     #()
-    #     # Compute the final step of the leapfrog method
-    #     p_current = p_star
-    #     p_guess = p_star
-    #     count = 0
-    #     while count < max_iter:
-    #         #("Count=",count)
-    #         count = count+1
-    #         if count == max_iter:
-    #                         print("Hit max iterations")
-    #                         p_star = p_current - 0.5*eps*\
-    #                                                 ((k*x_star + lam*x_star**3 \
-    #                                                              + 0.5*p_guess**2*(G(x_star,k,lam))*6*lam*x_star)/(M(x_star, k, lam, d))**2 \
-    #                                                         + 0.5*(6*lam*x_star)\
-    #                                                               /M(x_star,k, lam, d))
-    #         #("p_star is :", p_star)
-    #         #("p_guess is", p_guess)
-    #         #("Difference in ps:", abs(p_star - p_guess))
-    #         if p_star > 1e14:
-    #             print("BROKE p_star too big")
-    #             break
-    #         else:
-    #             if p_star < -1e14:
-    #                 print("BROKE p_star too big -ve")
-    #                 break
-    #             else:
-    #                 if abs(p_star - p_guess) < tol:
-    #                     break
-    #                 else:
-    #                     p_guess = p_star
-    #         #()
-    #         for_animation_x[L] = [x_stars[-1],L]
-    #         for_animation_p[L] = [p_stars[-1],L]
-    #         x.append(x_star)
+            for_animation_x[L] = [x_stars[-1],L]
+            for_animation_p[L] = [p_stars[-1],L]
+            x.append(x_star)
         # Compute the acceptance ratio
         r = np.exp(-H(x_star, p_star,k, lam, d) + H(x[t], p,k,lam, d))
         exps_delH.append(r)
@@ -358,13 +358,13 @@ def RMHMC(L = 10000,
 #             tol = 1e-12,
 #             d = 1e-6)[0])
 
-results_pos = RMHMC(L = 100,
-            eps = 0.1,
-            k = 1,
-            lam = 1,
-            n = 100,
-            tol = 1e-12,
-            d = 0.1)
+results_pos = RMHMC(L=10000,
+                  eps = 0.001, 
+                  k = 1,
+                  lam = 1,
+                  n=10,
+                  tol = 1e-12,
+                  d = 0.1)
 
 # results_neg = RMHMC(L = 10000,
 #                 eps = 1e-8,
@@ -373,10 +373,10 @@ results_pos = RMHMC(L = 100,
 #                 n = 100,
 #                 tol = 1e-12,
 #                 d = 0.1)
-k = 1
-lam = 1
-n = 1000
-d = 0.1 
+# k = 1
+# lam = 1
+# n = 100
+# d = 0.1 
 # print("Expected x =", mean_and_sd((results_pos[0]),n, k, lam, d)[0],\
 #       "Standardised standard deviation of x=",mean_and_sd(((results_pos)[0]),n, k, lam, d)[1]) 
 #     #    "Expected KE = ",mean_and_sd(results[1]),n, 1e-6)[0], \
@@ -393,20 +393,20 @@ d = 0.1
 # print()
 # k = -0.1
 # print(results_neg[4])
-print("Expected x =", mean_and_sd((results_pos[0]),n, k, lam, d)[0],\
-      "Standardised standard deviation of x=",mean_and_sd(((results_pos)[0]),n,k, lam,d)[1]) ,\
-    #    "Expected KE = ",mean_and_sd(results[1]),n, 1e-6)[0], \
-    #    "Standardised standard deviation of KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[1],\
-    #    "Expected PE =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[0],\
-    #    "Standardised standard deviation of PE = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[1],\
-print(     "Expected exp(-delH)= " ,mean_and_sd((results_pos[3]),n,k, lam,d)[0],\
-       "Standardised standard deviation of exp(-delH) = ", mean_and_sd((results_pos[3]),n, k, lam, d)[1])
-print("Expected error in p =", mean_and_sd((results_pos[4]),n, k, lam, d)[0],\
-        "Standardised standard deviation of error in p=", mean_and_sd((results_pos[4]),n, k, lam, d)[1],\
-        "Expected error in x=", mean_and_sd((results_pos[5]),n, k, lam, d)[0],\
-        "Standardised standard deviation of error in x=", mean_and_sd((results_pos[5]),n, k, lam, d)[1],\
-         "Acceptance ratio =" ,results_pos[6]) 
-# # Store the results from running the RMHMC alg
+# print("Expected x =", mean_and_sd((results_pos[0]),n, k, lam, d)[0],\
+#       "Standardised standard deviation of x=",mean_and_sd(((results_pos)[0]),n,k, lam,d)[1]) ,\
+#     #    "Expected KE = ",mean_and_sd(results[1]),n, 1e-6)[0], \
+#     #    "Standardised standard deviation of KE = ",mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[1]),n, 1e-6)[1],\
+#     #    "Expected PE =", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[0],\
+#     #    "Standardised standard deviation of PE = ", mean_and_sd((RMHMC(L,eps,1,1,1e-6,n,1e-6)[2]),n, 1e-6)[1],\
+# print(     "Expected exp(-delH)= " ,mean_and_sd((results_pos[3]),n,k, lam,d)[0],\
+#        "Standardised standard deviation of exp(-delH) = ", mean_and_sd((results_pos[3]),n, k, lam, d)[1])
+# print("Expected error in p =", mean_and_sd((results_pos[4]),n, k, lam, d)[0],\
+#         "Standardised standard deviation of error in p=", mean_and_sd((results_pos[4]),n, k, lam, d)[1],\
+#         "Expected error in x=", mean_and_sd((results_pos[5]),n, k, lam, d)[0],\
+#         "Standardised standard deviation of error in x=", mean_and_sd((results_pos[5]),n, k, lam, d)[1],\
+#          "Acceptance ratio =" ,results_pos[6]) 
+# Store the results from running the RMHMC alg
 # results_1 = RMHMC(L=10000,
 #                   eps = 0.001, 
 #                   k = 1,
@@ -451,7 +451,7 @@ print("Expected error in p =", mean_and_sd((results_pos[4]),n, k, lam, d)[0],\
 # ax.set_title("x dynamics for k =1")
 # ax.scatter(x_anim_1, y_anim_1)
 # fig.savefig("RMHMC_ani_set_1.png")
-# # trace_1, = ax.plot([],[])
+# trace_1, = ax.plot([],[])
 
 # # # Functions for the dynamics
 # # def init():
@@ -664,3 +664,4 @@ print("Expected error in p =", mean_and_sd((results_pos[4]),n, k, lam, d)[0],\
 # print("p starting=", results[8])
 # # print("x in leapfrog=",results[6])
 # # print("p in leapfrog=",results[7])
+
