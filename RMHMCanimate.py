@@ -80,6 +80,7 @@ def RMHMC(L = 10000,
         V_x = []
         # Draw the momentum from a Normal distribution
         p = np.random.normal(0,np.sqrt(M(x[t],k, lam, d)))
+        print("On iter", [t], "with x[t]", x[t], "p", p)
         # Provide an initial guess value for p, initialise p_star
         p_guess = p 
         p_star = 0
@@ -90,19 +91,19 @@ def RMHMC(L = 10000,
         while count < max_iter:
             #("Count =",count)
             count = count +1 
-            if count == max_iter:
-                print("Hit max iterations")
+            # if count == max_iter:
+                # print("Hit max iterations")
             p_star = p - 0.5*eps*\
                  ((k*x[t] + lam*x[t]**3 \
                      + 0.5*p_guess**2*(G(x[t],k,lam))*6*lam*x[t])/(M(x[t], k, lam, d))**2 \
                 + 0.5*(6*lam*x[t])\
                       /M(x[t],k, lam, d))
             if p_star > 1e14:
-                print("BROKE p_star too big")
+                # print("BROKE p_star too big")
                 break
             else:
                 if p_star < -1e14:
-                    print("BROKE p_star too big -ve")
+                    # print("BROKE p_star too big -ve")
                     break
                 else:
                     #("1st step p_star is:",p_star)
@@ -114,7 +115,7 @@ def RMHMC(L = 10000,
                     else:
                         p_guess = p_star 
             #()
-        print("Moving on from 1st step with p_star", p_star)  
+        # print("Moving on from 1st step with p_star", p_star)  
         # print("Broke p for first step on count=", count)
         p_stars.append(p_star)
         for_animation_p[0] = [p_star, 1]
@@ -125,8 +126,8 @@ def RMHMC(L = 10000,
         while count < max_iter:
             #("Count =",count)
             count = count + 1
-            if count == max_iter:
-                print("Hit max iterations")
+            # if count == max_iter:
+                # print("Hit max iterations")
             #("1st step x_star is :", x_star)
             x_star = x[t] + 0.5*eps\
                              *(p_star/M(x[t],k,lam, d)+p_star/M(x_guess,k, lam,d))
@@ -144,7 +145,7 @@ def RMHMC(L = 10000,
                         break
                     else:
                         x_guess = x_star
-        print("Moving on from 1st step with x_star", x_star)
+        # print("Moving on from 1st step with x_star", x_star)
         # print("Broke x for first step on count=", count)
         #("x_star is now", x_star)
         x_stars.append(x_star)
@@ -155,6 +156,15 @@ def RMHMC(L = 10000,
     #     #()
         # Compute (x*, - p*) using L leapfrog steps of size eps
         for l in range(1, L+1):
+            if p_star > 1e14:
+                print("BROKE p_star too big on iter", l)
+                break
+            else:
+                if p_star < -1e14:
+                    print("BROKE p_star too big -ve", l)
+                    break
+                else: 
+                    pass
             # print("L=", l)
             p_current = p_star
             p_guess = p_star
@@ -164,8 +174,8 @@ def RMHMC(L = 10000,
             while count < max_iter:
                 #("Count=",count)
                 count = count +1
-                if count == max_iter:
-                    print("Hit max iterations")
+                # if count == max_iter:
+                    # print("Hit max iterations")
                 #("Middle step iter[",l,"] p_star is :", p_star)
                 #("Using x_star:", x_star)
                 p_star = p_current - eps*\
@@ -173,6 +183,7 @@ def RMHMC(L = 10000,
                                      + 0.5*p_guess**2*(G(x_star,k,lam))*6*lam*x_star)/(M(x_star, k, lam, d))**2 \
                                 + 0.5*(6*lam*x_star)\
                                       /M(x_star,k, lam, d))
+                print("p_star", p_star)
                 # print("Change",eps\
                 #                         *(k*x_star + lam*x_star**3\
                 #                              + 0.5*p_guess**2*(6*lam*x_star)\
@@ -181,11 +192,11 @@ def RMHMC(L = 10000,
                 #("p_guess is", p_guess)
                 #("Difference in ps", abs(p_star - p_guess))
                 if p_star > 1e14:
-                    print("BROKE p_star too big")
+                    # print("BROKE p_star too big")
                     break
                 else:
                     if p_star < -1e14:
-                        print("BROKE p_star too big -ve")
+                        # print("BROKE p_star too big -ve")
                         break
                     else:
                         if abs(p_star - p_guess) < tol:
@@ -193,7 +204,7 @@ def RMHMC(L = 10000,
                             break 
                         else:
                             p_guess = p_star
-            print("Moving on from middle step iter [",l,"] with p_star", p_star)
+            # print("Moving on from middle step iter [",l,"] with p_star", p_star)
             # print("Change",eps\
             #                                         *(k*x_star + lam*x_star**3\
             #                                              + 0.5*p_guess**2*(6*lam*x_star)\
@@ -210,21 +221,21 @@ def RMHMC(L = 10000,
             while count < max_iter:
                 #("Count=",count)
                 count = count+1
-                if count == max_iter:
-                    print("Hit max iterations")
+                # if count == max_iter:
+                    # print("Hit max iterations")
                 #     break
                 #("Middle step iter[",l,"] x_star is :", x_star)
                 #("Using p_star", p_star)
                 x_star = x_current + 0.5*eps\
-                            *(p_star/M(x_current,k,lam,d)+p_star/M(x_guess,k,lam,d))
+                                *(p_star/M(x_current,k,lam,d)+p_star/M(x_guess,k,lam,d))
                 # print("Change", 0.5*eps\
                 #             *(p_star*M(x_current,k,lam,d)+p_star*M(x_guess,k,lam,d)) )
                 #("x_star=", x_star)
                 if x_star > 1e14:
-                    print("BROKE x_star too big")
+                    # print("BROKE x_star too big")
                     break
                 elif x_star < -1e14:
-                    print("BROKE x_star too big -ve")
+                    # print("BROKE x_star too big -ve")
                     break
                 elif abs(x_star - x_guess) < tol:
                     #("STOPPING while loop for x_star")
@@ -232,7 +243,7 @@ def RMHMC(L = 10000,
                 else:
                     x_guess = x_star
                 #()
-            ("Moving on from middle step iter[",l,"] with x_star", x_star)
+            # ("Moving on from middle step iter[",l,"] with x_star", x_star)
             #("Broke for x iteration", l," count=", count)
             x_stars.append(x_star)
             V_x.append(an_V(x_star,k,lam))  
@@ -247,7 +258,7 @@ def RMHMC(L = 10000,
             #("Count=",count)
             count = count+1
             if count == max_iter:
-                            print("Hit max iterations")
+                            # print("Hit max iterations")
                             p_star = p_current - 0.5*eps*\
                                                     ((k*x_star + lam*x_star**3 \
                                                                  + 0.5*p_guess**2*(G(x_star,k,lam))*6*lam*x_star)/(M(x_star, k, lam, d))**2 \
@@ -272,16 +283,20 @@ def RMHMC(L = 10000,
             for_animation_x[L] = [x_stars[-1],L]
             for_animation_p[L] = [p_stars[-1],L]
             x.append(x_star)
+        print("x_star is", x_star)
         # Compute the acceptance ratio
         r = np.exp(-H(x_star, p_star,k, lam, d) + H(x[t], p,k,lam, d))
         exps_delH.append(r)
+        # print("r",r)
         # Draw W from a Uniform distribution
-        W = np.random.uniform(0, 1)            
+        W = np.random.uniform(0, 1)  
+        # print("W", W)          
         # Carry out the Metropolis test
         if W <= min(1, r):
             x.append(x_star)
             accepted.append(x_star)
             p_vals.append(p_star)
+            print("I appended")
         else:
             x.append(x[t])
             p_vals.append(p)
@@ -362,7 +377,7 @@ results_pos = RMHMC(L=10000,
                   eps = 0.001, 
                   k = 1,
                   lam = 1,
-                  n=10,
+                  n=100,
                   tol = 1e-12,
                   d = 0.1)
 

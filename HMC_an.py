@@ -8,7 +8,7 @@ m = 1.0
 L = 1000
 eps = 0.01
 n = 10000
-k = -1
+k = 1
 lam = 1
 
 # def test_normal_p(n,m):
@@ -146,16 +146,16 @@ def mean_and_sd(x,m ,n):
     stand_sd = m**0.5/(n-1)**0.5
     return np.mean(values_to_use), stand_sd*np.std(values_to_use)
 
-print("Expected x =", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[0],1,100000)[0],\
-      "Standardised standard deviation of x=", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[0],1,100000)[1],\
-       "Expected KE = ",mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[1],1,100000)[0], \
-       "Standardised standard deviation of KE = ", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[1],1,100000)[1],\
-        "Expected exp(-delH)= " ,mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[2],1,100000)[0],\
-        "Standardised standard deviation of exp(-delH) = ", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[2],1,100000)[1],\
-        "Expected error in p=", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[3],1,100000)[0],\
-        "Standardised standard deviation of error in p =", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[3],1,100000)[1],\
-        "Expected error in x=", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[4],1,100000)[0],\
-                "Standardised standard deviation of error in x =", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[4],1,100000)[1],\
+print("Expected x =", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[0],m,n)[0],\
+      "Standardised standard deviation of x=", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[0],m,n)[1],\
+       "Expected KE = ",mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[1],m,n)[0], \
+       "Standardised standard deviation of KE = ", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[1],m,n)[1],\
+        "Expected exp(-delH)= " ,mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[2],m,n)[0],\
+        "Standardised standard deviation of exp(-delH) = ", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[2],m,n)[1],\
+        "Expected error in p=", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[3],m,n)[0],\
+        "Standardised standard deviation of error in p =", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[3],m,n)[1],\
+        "Expected error in x=", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[4],m,n)[0],\
+                "Standardised standard deviation of error in x =", mean_and_sd(an_HMC_alg(k,lam,n,L,eps)[4],m,n)[1],\
         "Acceptance ratio =" ,an_HMC_alg(k,lam,n,L,eps)[5])
 
 # # # Store the results from running the RMHMC alg
