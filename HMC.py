@@ -112,48 +112,51 @@ def HMC(n,L,eps):
         PE = 0.5*k*x[-1]**2 
         KE_vals.append(KE)
         PE_vals.append(PE)
-        # # Check reversibility
-        # p_star = p_star + 0.5*eps*k*x[t]
-        # x_star = x_star - eps*p_star/m
-        # for l in range(1, L):
-        #     p_star = p_star + eps*k*x_star
-        #     x_star = x_star - eps*p_star/m
-        # p_backwards = p_star + 0.5*eps*k*x_star
-        # error_p = (p_backwards - p)
-        # errors_p.append(error_p)
-        # error_x = x_star - x[-2]
-        #errors_x.append(error_x)
+        # Check reversibility
+        p_star = p_star + 0.5*eps*k*x[t]
+        x_star = x_star - eps*p_star/m
+        for l in range(1, L):
+            p_star = p_star + eps*k*x_star
+            x_star = x_star - eps*p_star/m
+        p_backwards = p_star + 0.5*eps*k*x_star
+        error_p = (p_backwards - p)
+        errors_p.append(error_p)
+        error_x = x_star - x[-2]
+        errors_x.append(error_x)
         # print(x)
     # Compute acceptance ratio
     acc_rat = (len(accepted)/len(x))*100
     return x, KE_vals, PE_vals, exps_delH, errors_p, errors_x, acc_rat, for_animation_x, for_animation_p
 
-# # Find the expected value of x and corresponding standardised standard deviation
-# def mean_and_sd(x,m,n):
-#     '''
-#     Given a list of values, compute the expected value (with burn-in removed), 
-#     and corresponding standardised standard deviation.
-#     '''
-#     values_to_use = x[math.ceil(len(x)/10):]
-#     stand_sd = m**0.5/(n-1)**0.5
-#     return np.mean(values_to_use), stand_sd*np.std(values_to_use)   
 
-# print("Expected x =", mean_and_sd(HMC(100000,L,eps)[0],1,100000)[0],\
-#       "Standardised standard deviation of x=", mean_and_sd(HMC(100000,L,eps)[0],1,1000000)[1],\
-#        "Expected KE = ",mean_and_sd(HMC(100000, L, eps)[1],1,1000000)[0], \
-#        "Standardised standard deviation of KE = ", mean_and_sd(HMC(100000, L, eps)[1],1,100000)[1],\
-#         "Expected PE =", mean_and_sd(HMC(100000,L,eps)[2],1,100000)[0],\
-#         "Standardised standard deviation of PE = ", mean_and_sd(HMC(100000, L, eps)[2],1,100000)[1],\
-#         "Expected exp(-delH)= " ,mean_and_sd(HMC(100000,L,eps)[3],1,1000000)[0],\
-#         "Standardised standard deviation of exp(-delH) = ", mean_and_sd(HMC(100000,L,eps)[3],1,100000)[1],\
-#         "Expected error =", mean_and_sd(HMC(100000, L, eps)[4],1,100000)[0],\
-#         "Standardised standard deviation of error=", mean_and_sd(HMC(100000,L,eps)[4],1,100000)[1],\
-#         "Acceptance ratio =" ,HMC(100000, L, eps)[5])
+# Find the expected value of x and corresponding standardised standard deviation
+def mean_and_sd(x,m,n):
+    '''
+    Given a list of values, compute the expected value (with burn-in removed), 
+    and corresponding standardised standard deviation.
+    '''
+    values_to_use = x[math.ceil(len(x)/10):]
+    stand_sd = m**0.5/(n-1)**0.5
+    return np.mean(values_to_use), stand_sd*np.std(values_to_use)   
+
+# print("Expected x =", mean_and_sd(HMC(10000,L,eps)[0],1,10000)[0],\
+#       "Standardised standard deviation of x=", mean_and_sd(HMC(10000,L,eps)[0],1,10000)[1],\
+#        "Expected KE = ",mean_and_sd(HMC(10000, L, eps)[1],1,10000)[0], \
+#        "Standardised standard deviation of KE = ", mean_and_sd(HMC(10000, L, eps)[1],1,10000)[1],\
+#         "Expected PE =", mean_and_sd(HMC(10000,L,eps)[2],1,10000)[0],\
+#         "Standardised standard deviation of PE = ", mean_and_sd(HMC(10000, L, eps)[2],1,10000)[1],\
+#         "Expected exp(-delH)= " ,mean_and_sd(HMC(10000,L,eps)[3],1,10000)[0],\
+#         "Standardised standard deviation of exp(-delH) = ", mean_and_sd(HMC(10000,L,eps)[3],1,10000)[1],\
+print(    "Expected error in p =", mean_and_sd(HMC(10000, L, eps)[4],1,10000)[0],\
+        "Standardised standard deviation of error in p=", mean_and_sd(HMC(10000,L,eps)[4],1,10000)[1],\
+        "Expected error in x =", mean_and_sd(HMC(10000, L, eps)[5],1,10000)[0],\
+                "Standardised standard deviation of error in x=", mean_and_sd(HMC(10000,L,eps)[5],1,10000)[1],\
+        "Acceptance ratio =" ,HMC(10000, L, eps)[6])
 
 # # Store the results from running the RMHMC alg
-results = HMC(n=10000, L= L, eps = eps)
-x_anim = np.array(results[6][:,1])
-y_anim = np.array(results[6][:,0])
+# results = HMC(n=10000, L= L, eps = eps)
+# x_anim = np.array(results[6][:,1])
+# y_anim = np.array(results[6][:,0])
 
 # # Setting up the plot for the dynamics
 # fig, ax = plt.subplots(figsize=(10,10))
@@ -187,20 +190,20 @@ y_anim = np.array(results[6][:,0])
 # fig.canvas.manager.window.attributes('-topmost', 1)
 # animate_x.save("HMC_ani.gif", writer = 'pillow')
 
-x_anim_p = np.array(results[7][:,1])
-y_anim_p = np.array(results[7][:,0])
+# x_anim_p = np.array(results[7][:,1])
+# y_anim_p = np.array(results[7][:,0])
 
-# Setting up the plot for the dynamics
-fig, ax = plt.subplots(figsize=(10,10))
-ax.set_xlim(0,L)
-fig.supxlabel("Leapfrog step")
-ax.set_ylim(-3,3)
-fig.supylabel("Value")
-ax.set_title("p dynamics")
-ax.scatter(x_anim_p, y_anim_p, c='#D32F2F')
-fig.savefig("HMC_ani_set_p.png")
-# trace_p, = ax.plot([],[])
-# current_plot_p, = ax.plot([],[]) 
+# # Setting up the plot for the dynamics
+# fig, ax = plt.subplots(figsize=(10,10))
+# ax.set_xlim(0,L)
+# fig.supxlabel("Leapfrog step")
+# ax.set_ylim(-3,3)
+# fig.supylabel("Value")
+# ax.set_title("p dynamics")
+# ax.scatter(x_anim_p, y_anim_p, c='#D32F2F')
+# fig.savefig("HMC_ani_set_p.png")
+# # trace_p, = ax.plot([],[])
+# # current_plot_p, = ax.plot([],[]) 
 
 # # Functions for the dynamics
 # def init_p():
